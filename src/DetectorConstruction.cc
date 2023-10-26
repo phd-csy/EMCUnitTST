@@ -248,17 +248,27 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
         0,
         true);
 
-    const auto fCrystalHalfWidth = 7.5*cm;
+    const auto fCrystalHalfWidth = 2.5*cm;
+    const auto fCrystalHalfLength = 7.5*cm;
     const auto fCrystalCoatSpacing = 10.*um;
     const auto fReflectiveCoatThickenss = 20. * um;
     const auto fProtectiveCoatThickenss = 50. * um;
-    const auto fSiPMThickness = 250.*um;
-    const auto translation = G4ThreeVector(0., 0., fCrystalHalfWidth+fSiPMThickness);
+    const auto fSiPMHalfWidth = 3.*mm;
+    const auto fSiPMHalfThickness = 250.*um;
+    const auto translation = G4ThreeVector(0., 0., fCrystalHalfLength+fSiPMHalfThickness);
 
-    const auto albox = new G4Box("albox", fCrystalHalfWidth+fReflectiveCoatThickenss, fCrystalHalfWidth+fReflectiveCoatThickenss, fCrystalHalfWidth+fReflectiveCoatThickenss);
+    const auto albox = new G4Box("albox", fCrystalHalfWidth+fReflectiveCoatThickenss, fCrystalHalfWidth+fReflectiveCoatThickenss, fCrystalHalfLength+fReflectiveCoatThickenss);
 
-    const auto crystalSV = new G4Box("crystal", fCrystalHalfWidth, fCrystalHalfWidth, fCrystalHalfWidth);
-    const auto crystalLV = new G4LogicalVolume(crystalSV, lyso, "crystal");
+    const auto crystalSV = new G4Box("crystal", fCrystalHalfWidth, fCrystalHalfWidth, fCrystalHalfLength);
+
+//========================================== CsI(Tl) ============================================
+    const auto crystalLV = new G4LogicalVolume{crystalSV, csI, "crystal"};
+//========================================== LaBr3(Ce) ==========================================
+    // const auto crystalLV = new G4LogicalVolume{crystalSV, labr, "crystal"};
+//========================================== LYSO(Ce) ===========================================
+    // const auto crystalLV = new G4LogicalVolume{crystalSV, lyso, "crystal"};
+//===============================================================================================
+
     new G4PVPlacement(
     nullptr,
     G4ThreeVector(),
@@ -269,7 +279,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     0,
     true);
 
-    const auto sipmSV = new G4Box("sipm", 3.*mm, 3.*mm, 250.*um);
+    const auto sipmSV = new G4Box("sipm", fSiPMHalfWidth, fSiPMHalfWidth, fSiPMHalfThickness);
     const auto sipmLV = new G4LogicalVolume(sipmSV, silicon, "sipm");
     new G4PVPlacement(
     nullptr,
@@ -280,7 +290,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     false,
     0,
     true);
-
 
     const auto unionSolid = new G4UnionSolid("unionSolid", crystalSV, sipmSV, 0, translation);
 
@@ -304,17 +313,17 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     auto alSurfacePropertiesTable = new G4MaterialPropertiesTable();
     auto alSurface = new G4OpticalSurface("Al foil", unified, polished, dielectric_metal);
-    new G4LogicalSkinSurface("AlSkinSurface", logicReflectiveCoat, alSurface);
+    new G4LogicalSkinSurface("AlSkinSurface", alLV, alSurface);
     alSurfacePropertiesTable->AddProperty("REFLECTIVITY", energy, reflectivity);
     alSurface->SetMaterialPropertiesTable(alSurfacePropertiesTable);
 
     energy = {1.0*eV, 20.0*eV};
     reflectivity = {0, 0};
-    efficiency = {1, 1}
+    efficiency = {1, 1};
 
     auto sipmSurfacePropertiesTable = new G4MaterialPropertiesTable();
     auto sipmSurface = new G4OpticalSurface("SiPM", unified, polished, dielectric_metal);
-    new G4LogicalSkinSurface("sipmSkinSurface", logicSiPM, sipmSurface);
+    new G4LogicalSkinSurface("sipmSkinSurface", sipmLV, sipmSurface);
     sipmSurfacePropertiesTable->AddProperty("REFLECTIVITY", energy, reflectivity);
     sipmSurfacePropertiesTable->AddProperty("EFFICIENCY", energy, reflectivity);
     sipmSurface->SetMaterialPropertiesTable(sipmSurfacePropertiesTable);
