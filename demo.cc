@@ -7,14 +7,15 @@
 #include "FTFP_BERT.hh"
 #include "G4OpticalPhysics.hh"
 #include "G4EmStandardPhysics_option4.hh"
+#include "G4EmLowEPPhysics.hh"
 #include "G4DecayPhysics.hh"
 #include "G4RadioactiveDecayPhysics.hh"
-#include "G4EmLowEPPhysics.hh"
 
 #include "Randomize.hh"
 
 #include "G4VisExecutive.hh"
 #include "G4UIExecutive.hh"
+#include "G4Timer.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -22,6 +23,9 @@ int main(int argc, char **argv)
 {
     // Detect interactive mode (if no arguments) and define UI session
     //
+    const auto timer=new G4Timer;
+    timer->Start();
+
     G4UIExecutive *ui = nullptr;
     if (argc == 1)
     {
@@ -53,10 +57,8 @@ int main(int argc, char **argv)
 
     G4VModularPhysicsList *physicsList = new FTFP_BERT(0);
     physicsList->RegisterPhysics(new G4OpticalPhysics(0));
-    physicsList->RegisterPhysics(new G4DecayPhysics(0));
-    physicsList->RegisterPhysics(new G4RadioactiveDecayPhysics(0));
-    // physicsList->ReplacePhysics(new G4EmStandardPhysics_option4(0));
-    physicsList->ReplacePhysics(new G4EmLowEPPhysics(0));
+    // physicsList->RegisterPhysics(new G4RadioactiveDecayPhysics(0));
+    physicsList->ReplacePhysics(new G4EmStandardPhysics_option4(0));
     runManager->SetUserInitialization(physicsList);
 
     // Set user action classes
@@ -85,10 +87,6 @@ int main(int argc, char **argv)
     {
         // interactive mode
         UImanager->ApplyCommand("/control/execute init_vis.mac");
-        if (ui->IsGUI())
-        {
-            UImanager->ApplyCommand("/control/execute gui.mac");
-        }
         ui->SessionStart();
         delete ui;
     }
@@ -98,8 +96,12 @@ int main(int argc, char **argv)
     // owned and deleted by the run manager, so they should not be deleted
     // in the main() program !
     //
+    timer->Stop();
+    G4cout << "Time runs: " << *timer << G4endl;
+
     delete visManager;
     delete runManager;
+    delete timer;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....

@@ -2,6 +2,8 @@
 #include "SiPMHit.hh"
 #include "DetectorConstruction.hh"
 #include "G4RunManager.hh"
+#include "G4OpBoundaryProcess.hh"
+
 
 SiPMSD::SiPMSD(const G4String &sdname, const G4String &hcName) : G4VSensitiveDetector(sdname) { collectionName.insert(hcName); }
 

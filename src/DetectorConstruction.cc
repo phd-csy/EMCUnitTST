@@ -253,9 +253,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto fCrystalCoatSpacing = 10.*um;
     const auto fReflectiveCoatThickenss = 20. * um;
     const auto fProtectiveCoatThickenss = 50. * um;
-    const auto fSiPMHalfWidth = 3.*mm;
-    const auto fSiPMHalfThickness = 250.*um;
-    const auto translation = G4ThreeVector(0., 0., fCrystalHalfLength+fSiPMHalfThickness);
+    const auto fSiPMHalfWidth = 3*cm;
+    const auto fSiPMHalfThickness = 0.5*cm;
+    const auto fCouplerHalfWidth = fSiPMHalfWidth;
+    const auto fCouplerHalfThickness = 500*um;
+
+    const auto translation1 = G4ThreeVector(0., 0., fCrystalHalfLength+fCouplerHalfThickness);
+    const auto translation2 = G4ThreeVector(0., 0., fCrystalHalfLength+fCouplerHalfThickness*2+fSiPMHalfThickness);
 
     const auto albox = new G4Box("albox", fCrystalHalfWidth+fReflectiveCoatThickenss, fCrystalHalfWidth+fReflectiveCoatThickenss, fCrystalHalfLength+fReflectiveCoatThickenss);
 
@@ -283,7 +287,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto sipmLV = new G4LogicalVolume(sipmSV, silicon, "sipm");
     new G4PVPlacement(
     nullptr,
-    translation,
+    translation2,
     sipmLV,
     "sipm",
     worldLV,
@@ -291,7 +295,20 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     0,
     true);
 
-    const auto unionSolid = new G4UnionSolid("unionSolid", crystalSV, sipmSV, 0, translation);
+    const auto couplerSV = new G4Box("coupler", fCouplerHalfWidth, fCouplerHalfWidth, fCouplerHalfThickness);
+    const auto couplerLV = new G4LogicalVolume(couplerSV, siliconeOil, "coupler");
+    new G4PVPlacement(
+        nullptr,
+        translation1,
+        couplerLV,
+        "coupler",
+        worldLV,
+        false,
+        0,
+        true
+    );
+
+    const auto unionSolid = new G4UnionSolid("unionSolid", crystalSV, couplerSV, 0, translation1);
 
     const auto alSV = new G4SubtractionSolid("al", albox, unionSolid);
     const auto alLV = new G4LogicalVolume(alSV, aluminum, "al");
@@ -318,14 +335,14 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     alSurface->SetMaterialPropertiesTable(alSurfacePropertiesTable);
 
     energy = {1.0*eV, 20.0*eV};
-    reflectivity = {0, 0};
+    // reflectivity = {0, 0};
     efficiency = {1, 1};
 
     auto sipmSurfacePropertiesTable = new G4MaterialPropertiesTable();
     auto sipmSurface = new G4OpticalSurface("SiPM", unified, polished, dielectric_metal);
     new G4LogicalSkinSurface("sipmSkinSurface", sipmLV, sipmSurface);
-    sipmSurfacePropertiesTable->AddProperty("REFLECTIVITY", energy, reflectivity);
-    sipmSurfacePropertiesTable->AddProperty("EFFICIENCY", energy, reflectivity);
+    // sipmSurfacePropertiesTable->AddProperty("REFLECTIVITY", energy, reflectivity);
+    sipmSurfacePropertiesTable->AddProperty("EFFICIENCY", energy, efficiency);
     sipmSurface->SetMaterialPropertiesTable(sipmSurfacePropertiesTable);
 
 

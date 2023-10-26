@@ -14,22 +14,19 @@
 
 RunAction::RunAction()
 : G4UserRunAction()
-{
-    timer=new G4Timer;
-}
+{}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 RunAction::~RunAction()
-{
-    delete timer;
-}
+{}
 
 void RunAction::BeginOfRunAction(const G4Run *run)
 {
     timer->Start();
 
     auto analysisManager = G4AnalysisManager::Instance();
+
 #ifdef G4MULTITHREADED
     analysisManager->SetNtupleMerging(true);
 #endif
@@ -57,9 +54,6 @@ void RunAction::EndOfRunAction(const G4Run *)
     analysisManager->Write();
     analysisManager->CloseFile();
     analysisManager->Clear();
-
-    timer->Stop();
-    G4cout << "Time runs: " << *timer << G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

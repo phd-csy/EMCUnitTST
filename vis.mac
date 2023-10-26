@@ -83,11 +83,11 @@
 #
 # Custom
 /vis/geometry/set/visibility World 0 false
-#/vis/viewer/addCutawayPlane 0 1 1
+#/vis/viewer/addCutawayPlane 0 0 0
 
 /gps/particle gamma
 /gps/ene/mono 0.511 MeV
-/gps/pos/centre 0. 0. -3. cm
+/gps/pos/centre 0. 0. -20. cm
 /gps/direction 0 0 1
 
 #/run/beamOn 1
