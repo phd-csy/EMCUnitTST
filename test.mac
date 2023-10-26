@@ -11,4 +11,4 @@
 /gps/direction 0 0 1
 
 /run/printProgress 50
-/run/beamOn 500
+/run/beamOn 1000

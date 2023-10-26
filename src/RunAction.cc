@@ -23,8 +23,6 @@ RunAction::~RunAction()
 
 void RunAction::BeginOfRunAction(const G4Run *run)
 {
-    timer->Start();
-
     auto analysisManager = G4AnalysisManager::Instance();
 
 #ifdef G4MULTITHREADED

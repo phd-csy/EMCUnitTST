@@ -335,13 +335,11 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     alSurface->SetMaterialPropertiesTable(alSurfacePropertiesTable);
 
     energy = {1.0*eV, 20.0*eV};
-    // reflectivity = {0, 0};
     efficiency = {1, 1};
 
     auto sipmSurfacePropertiesTable = new G4MaterialPropertiesTable();
     auto sipmSurface = new G4OpticalSurface("SiPM", unified, polished, dielectric_metal);
     new G4LogicalSkinSurface("sipmSkinSurface", sipmLV, sipmSurface);
-    // sipmSurfacePropertiesTable->AddProperty("REFLECTIVITY", energy, reflectivity);
     sipmSurfacePropertiesTable->AddProperty("EFFICIENCY", energy, efficiency);
     sipmSurface->SetMaterialPropertiesTable(sipmSurfacePropertiesTable);
 

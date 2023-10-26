@@ -16,9 +16,6 @@ public:
 
     void BeginOfRunAction(const G4Run *run) override;
     void EndOfRunAction(const G4Run *run) override;
-
-private:
-    G4Timer* timer;
 };
 
 #endif
