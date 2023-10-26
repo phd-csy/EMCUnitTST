@@ -43,12 +43,12 @@ void EventAction::EndOfEventAction(const G4Event* event)
         if (energyDeposit > 0.){
             analysisManager->FillNtupleIColumn(0, 0, i);
             analysisManager->FillNtupleDColumn(0, 1, energyDeposit);
-            analysisManager->FillNtupleIColumn(0, 2, sipmHC->GetSize());
+            analysisManager->FillNtupleIColumn(0, 2, sipmHC->entries());
             analysisManager->AddNtupleRow(0);
         }
     }
 
-    for (long unsigned int j = 0; j < sipmHC->GetSize(); j++){
+    for (long unsigned int j = 0; j < sipmHC->entries(); j++){
 
         auto sipmHit = (*sipmHC)[j];
 

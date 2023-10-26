@@ -79,107 +79,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     siliconeOil->AddElement(oxygenElement, 1);
     siliconeOil->AddElement(siliconElement, 1);
 
-    // O 8
-    const auto o16 = new G4Isotope("O16", 8, 16, 15.99*g/mole);
-    const auto o17 = new G4Isotope("O17", 8, 17, 16.999*g/mole);
-    const auto o18 = new G4Isotope("O18", 8, 18, 17.999*g/mole);
-    const auto elo16 = new G4Element("O16", "016", 1);
-    elo16->AddIsotope(o16, 1);
-    const auto elo17 = new G4Element("O17", "017", 1);
-    elo17->AddIsotope(o17, 1);
-    const auto elo18 = new G4Element("O18", "018", 1);
-    elo18->AddIsotope(o18, 1);
-
-    // Br 35
-    const auto br79 = new G4Isotope("Br79", 35, 79, 78.9*g/mole);
-    const auto br81 = new G4Isotope("Br81", 35, 81, 80.9*g/mole);
-    const auto elbr79 = new G4Element("Br79", "Br79", 1);
-    elbr79->AddIsotope(br79, 1);
-    const auto elbr81 = new G4Element("Br81", "Br81", 1);
-    elbr81->AddIsotope(br81, 1);
-
-    // Y 39
-    const auto y89 = new G4Isotope("Y89", 39, 89, 88.9*g/mole);
-    const auto ely89 = new G4Element("Y89", "Y89", 1);
-    ely89->AddIsotope(y89, 1);
-
-    // I 53
-    const auto i127 = new G4Isotope("I127", 53, 127, 126.9*g/mole);
-    const auto eli127 = new G4Element("I127", "I127", 1);
-    eli127->AddIsotope(i127, 1);
-
-    // Cs 55
-    const auto cs133 = new G4Isotope("Cs133", 55, 133, 132.9*g/mole);
-    const auto elcs133 = new G4Element("Cs133", "Cs133", 1);
-    elcs133->AddIsotope(cs133, 1);
-
-    // La 57
-    const auto la138 = new G4Isotope("La138", 57, 138, 137.9*g/mole);
-    const auto la139 = new G4Isotope("La139", 57, 139, 138.9*g/mole);
-    const auto ella138 = new G4Element("La138", "La138", 1);
-    ella138->AddIsotope(la138, 1);
-    const auto ella139 = new G4Element("La139", "La139", 1);
-    ella139->AddIsotope(la139, 1);
-
-    // Ce 58
-    const auto ce136 = new G4Isotope("Ce136", 58, 136, 135.9*g/mole);
-    const auto ce138 = new G4Isotope("Ce138", 58, 138, 137.9*g/mole);
-    const auto ce140 = new G4Isotope("Ce140", 58, 140, 139.9*g/mole);
-    const auto ce142 = new G4Isotope("Ce142", 58, 142, 141.9*g/mole);
-    const auto elce136 = new G4Element("Ce136", "Ce136", 1);
-    elce136->AddIsotope(ce136, 1);
-    const auto elce138 = new G4Element("Ce138", "Ce138", 1);
-    elce138->AddIsotope(ce138, 1);
-    const auto elce140 = new G4Element("Ce140", "Ce140", 1);
-    elce140->AddIsotope(ce140, 1);
-    const auto elce142 = new G4Element("Ce142", "Ce142", 1);
-    elce142->AddIsotope(ce142, 1);
-
-    // Lu 71
-    const auto lu175 = new G4Isotope("Lu175", 71, 175, 174.9*g/mole);
-    const auto lu176 = new G4Isotope("Lu176", 71, 176, 175.9*g/mole);
-    const auto ellu175 = new G4Element("Lu175", "Lu175", 1);
-    ellu175->AddIsotope(lu175, 1);
-    const auto ellu176 = new G4Element("Lu176", "Lu176", 1);
-    ellu176->AddIsotope(lu176, 1);
-
-    // Tl 81
-    const auto tl203 = new G4Isotope("Tl203", 81, 203, 202.97*g/mole);
-    const auto tl205 = new G4Isotope("Tl205", 81, 205, 204.97*g/mole);
-    const auto eltl203 = new G4Element("Tl203", "Tl203", 1);
-    eltl203->AddIsotope(tl203, 1);
-    const auto eltl205 = new G4Element("Tl205", "Tl205", 1);
-    eltl205->AddIsotope(tl205, 1);
-
-    // const auto csI = new G4Material("CsI", 4.51 * g/cm3, 4, kStateSolid);
-    // csI->AddElement(elcs133, 0.507556);
-    // csI->AddElement(eli127, 0.484639);
-    // csI->AddElement(eltl203, 0.002288);
-    // csI->AddElement(eltl205, 0.005517);
-
-    // const auto labr = new G4Material("LaBr3", 5.08 * g/cm3, 8, kStateSolid);
-    // labr->AddElement(elbr79, 0.316012);
-    // labr->AddElement(elbr81, 0.315192);
-    // labr->AddElement(elce136, 0.000033);
-    // labr->AddElement(elce138, 0.000045);
-    // labr->AddElement(elce140, 0.016151);
-    // labr->AddElement(elce142, 0.002059);
-    // labr->AddElement(ella138, 0.000309);
-    // labr->AddElement(ella139, 0.350195);
-
-    // const auto lyso = new G4Material("LYSO", 7.1 * g/cm3, 11, kStateSolid);
-    // lyso->AddElement(elo16, 0.175325);
-    // lyso->AddElement(elo17, 0.000071);
-    // lyso->AddElement(elo18, 0.000405);
-    // lyso->AddElement(siliconElement, 0.061720);
-    // lyso->AddElement(ely89, 0.019538);
-    // lyso->AddElement(ellu175, 0.711469);
-    // lyso->AddElement(ellu176, 0.019093);
-    // lyso->AddElement(elce136, 0.000022);
-    // lyso->AddElement(elce138, 0.000031);
-    // lyso->AddElement(elce140, 0.010932);
-    // lyso->AddElement(elce142, 0.001393);
-
     const auto cesiumElement = nistManager->FindOrBuildElement("Ce");
     const auto iodideElement = nistManager->FindOrBuildElement("I");
     const auto thaliumElement = nistManager->FindOrBuildElement("Tl");
@@ -196,9 +95,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     csI->AddElement(thaliumElement, 0.007805);
 
     const auto labr = new G4Material("LaBr3", 5.08 * g/cm3, 3, kStateSolid);
-    labr->AddElement(bromideElement, 0.631208);
-    labr->AddElement(lanthanumElement, 0.350504);
-    labr->AddElement(cesiumElement, 0.018288);
+    labr->AddElement(bromideElement, 0.631308);
+    labr->AddElement(cesiumElement, 0.036582);
+    labr->AddElement(lanthanumElement, 0.332110);
 
     const auto lyso = new G4Material("LYSO", 7.1 * g/cm3, 5, kStateSolid);
     lyso->AddElement(oxygenElement, 0.175801);
@@ -212,37 +111,20 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     // Define Optical Properties
     std::vector<G4double> energy;
     std::vector<G4double> rindex;
+    std::vector<G4double> efficiency;
     std::vector<G4double> reflectivity;
     std::vector<G4double> absoption;
-
-//============================================ air ============================================
-
-    energy = {1.0 * eV, 20.0 * eV};
-    rindex = {1.0, 1.0};
-    const auto airRefIndex = new G4MaterialPropertyVector(&energy.front(), &rindex.front(), energy.size());
-    auto airPropertiesTable = new G4MaterialPropertiesTable();
-    airPropertiesTable->AddProperty("RINDEX", airRefIndex);
-    galactic->SetMaterialPropertiesTable(airPropertiesTable);
-
-//============================================ Al foil ============================================
-
-    energy = {1.0*eV, 20.0*eV};
-    reflectivity = {0.95, 0.95};
-    const auto alRefIndex = new G4MaterialPropertyVector(&energy.front(), &reflectivity.front(), energy.size());
-    auto alPropertiesTable = new G4MaterialPropertiesTable();
-    alPropertiesTable->AddProperty("REFLECTIVITY", alRefIndex);
-    aluminum->SetMaterialPropertiesTable(alPropertiesTable);
 
 //============================================ silicone oil ============================================
 
     // silicone oil refractive index
-    energy = {1.587 * eV, 3.095 * eV};
-    rindex = {1.403, 1.406};
+    energy = {8.01532E-07*eV, 1.89386E-06*eV, 1.92915E-06*eV, 2.1093E-06*eV, 2.27541E-06*eV, 2.55633E-06*eV, 2.58828E-06*eV};
+    rindex = {1.3912, 1.3992, 1.3997, 1.4015, 1.4034, 1.4071, 1.4076};
     const auto siliconeOilRefIndex = new G4MaterialPropertyVector(&energy.front(), &rindex.front(), energy.size());
 
     // silicone oil absoption length
-    energy = {1.587 * eV, 3.095 * eV};
-    absoption = {50. * cm, 50. * cm};
+    energy = {1. * eV, 20. * eV};
+    absoption = {15. * cm, 15. * cm};
     const auto siliconeOilAbsLength = new G4MaterialPropertyVector(&energy.front(), &absoption.front(), energy.size());
 
     // add
@@ -253,21 +135,21 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
 //============================================ SiPM ============================================
 
-    // SiPM refractive index
-    energy = {1.587 * eV, 3.095 * eV};
-    rindex = {1.403, 1.406};
-    const auto siPMRefIndex = new G4MaterialPropertyVector(&energy.front(), &rindex.front(), energy.size());
+    // // SiPM refractive index
+    // energy = {1.587 * eV, 3.095 * eV};
+    // rindex = {1.403, 1.406};
+    // const auto siPMRefIndex = new G4MaterialPropertyVector(&energy.front(), &rindex.front(), energy.size());
 
-    // SiPM absoption length
-    energy = {1.0 * eV, 20.0 * eV};
-    absoption = {0*cm, 0*cm};
-    const auto siPMAbsLength = new G4MaterialPropertyVector(&energy.front(), &absoption.front(), energy.size());
+    // // SiPM absoption length
+    // energy = {1.0 * eV, 20.0 * eV};
+    // absoption = {0*cm, 0*cm};
+    // const auto siPMAbsLength = new G4MaterialPropertyVector(&energy.front(), &absoption.front(), energy.size());
 
-    // add
-    auto siPMPropertiesTable = new G4MaterialPropertiesTable();
-    siPMPropertiesTable->AddProperty("RINDEX", siPMRefIndex);
-    siPMPropertiesTable->AddProperty("ABSLENGTH", siPMAbsLength);
-    silicon->SetMaterialPropertiesTable(siPMPropertiesTable);
+    // // add
+    // auto siPMPropertiesTable = new G4MaterialPropertiesTable();
+    // siPMPropertiesTable->AddProperty("RINDEX", siPMRefIndex);
+    // siPMPropertiesTable->AddProperty("ABSLENGTH", siPMAbsLength);
+    // silicon->SetMaterialPropertiesTable(siPMPropertiesTable);
 
 //============================================ Crystal ============================================
 
@@ -279,6 +161,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
         &csiProperties["energy"].front(),
         &csiProperties["RINDEX"].front(),
         csiProperties["RINDEX"].size()
+    );
+    csiPropertiesTable->AddProperty(
+    "ABSLENGTH",
+    &csiProperties["energy"].front(),
+    &csiProperties["ABSLENGTH"].front(),
+    csiProperties["ABSLENGTH"].size()
     );
     csiPropertiesTable->AddProperty(
         "SCINTILLATIONCOMPONENT1",
@@ -301,6 +189,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
         labrProperties["RINDEX"].size()
     );
     labrPropertiesTable->AddProperty(
+        "ABSLENGTH",
+        &labrProperties["energy"].front(),
+        &labrProperties["ABSLENGTH"].front(),
+        labrProperties["ABSLENGTH"].size()
+    );
+    labrPropertiesTable->AddProperty(
         "SCINTILLATIONCOMPONENT1",
         &labrProperties["energy"].front(),
         &labrProperties["SCINTILLATIONCOMPONENT1"].front(),
@@ -319,6 +213,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
         &lysoProperties["energy"].front(),
         &lysoProperties["RINDEX"].front(),
         lysoProperties["RINDEX"].size()
+    );
+    lysoPropertiesTable->AddProperty(
+        "ABSLENGTH",
+        &lysoProperties["energy"].front(),
+        &lysoProperties["ABSLENGTH"].front(),
+        lysoProperties["ABSLENGTH"].size()
     );
     lysoPropertiesTable->AddProperty(
         "SCINTILLATIONCOMPONENT1",
@@ -396,9 +296,29 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     0,
     true);
 
+
+    // Define Surface
+
+    energy = {1.0*eV, 20.0*eV};
+    reflectivity = {0.95, 0.95};
+
+    auto alSurfacePropertiesTable = new G4MaterialPropertiesTable();
     auto alSurface = new G4OpticalSurface("Al foil", unified, polished, dielectric_metal);
-    alSurface->SetMaterialPropertiesTable(alPropertiesTable);
-    new G4LogicalSkinSurface("AlSkinSurface", alLV, alSurface);
+    new G4LogicalSkinSurface("AlSkinSurface", logicReflectiveCoat, alSurface);
+    alSurfacePropertiesTable->AddProperty("REFLECTIVITY", energy, reflectivity);
+    alSurface->SetMaterialPropertiesTable(alSurfacePropertiesTable);
+
+    energy = {1.0*eV, 20.0*eV};
+    reflectivity = {0, 0};
+    efficiency = {1, 1}
+
+    auto sipmSurfacePropertiesTable = new G4MaterialPropertiesTable();
+    auto sipmSurface = new G4OpticalSurface("SiPM", unified, polished, dielectric_metal);
+    new G4LogicalSkinSurface("sipmSkinSurface", logicSiPM, sipmSurface);
+    sipmSurfacePropertiesTable->AddProperty("REFLECTIVITY", energy, reflectivity);
+    sipmSurfacePropertiesTable->AddProperty("EFFICIENCY", energy, reflectivity);
+    sipmSurface->SetMaterialPropertiesTable(sipmSurfacePropertiesTable);
+
 
     ++cellNumber;
 

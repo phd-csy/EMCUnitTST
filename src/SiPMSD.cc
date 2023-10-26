@@ -19,12 +19,12 @@ void SiPMSD::Initialize(G4HCofThisEvent *hcOfThisEvent)
 G4bool SiPMSD::ProcessHits(G4Step *step, G4TouchableHistory *)
 {
     auto particleDefinition = step->GetTrack()->GetDefinition();
-    if (particleDefinition != G4OpticalPhoton::OpticalPhotonDefinition() or not step->IsFirstStepInVolume())
+    if (particleDefinition != G4OpticalPhoton::OpticalPhotonDefinition())
         return false;
 
     auto hit = new SiPMHit;
     auto globalTime = step->GetPostStepPoint()->GetGlobalTime();
-    auto copyNo = step->GetPreStepPoint()->GetTouchable()->GetVolume()->GetCopyNo();
+    auto copyNo = step->GetTrack()->GetVolume()->GetCopyNo();
     hit->SetGlobalTime(globalTime);
     hit->SetCopyNo(copyNo);
     hc->insert(hit);
