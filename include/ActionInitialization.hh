@@ -5,9 +5,8 @@
 
 /// Action initialization class.
 
-class ActionInitialization : public G4VUserActionInitialization
-{
-  public:
+class ActionInitialization : public G4VUserActionInitialization {
+public:
     ActionInitialization() = default;
     ~ActionInitialization() override = default;
 
@@ -15,7 +14,4 @@ class ActionInitialization : public G4VUserActionInitialization
     void Build() const override;
 };
 
-
 #endif
-
-

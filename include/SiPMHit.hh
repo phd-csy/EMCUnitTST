@@ -1,11 +1,10 @@
 #ifndef SIPMHIT_HH
 #define SIPMHIT_HH
 
-#include "G4VHit.hh"
 #include "G4THitsCollection.hh"
+#include "G4VHit.hh"
 
-class SiPMHit : public G4VHit
-{
+class SiPMHit : public G4VHit {
 public:
     void SetGlobalTime(G4double time) { globalTime = time; }
     G4double GetGlobalTime() const { return globalTime; }

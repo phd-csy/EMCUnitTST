@@ -1,10 +1,10 @@
 #ifndef DetectorConstruction_h
 #define DetectorConstruction_h 1
 
-#include "globals.hh"
-#include "G4VUserDetectorConstruction.hh"
-#include "tls.hh"
 #include "CreateMapFromCSV.hh"
+#include "G4VUserDetectorConstruction.hh"
+#include "globals.hh"
+#include "tls.hh"
 
 #include <utility>
 #include <vector>
@@ -19,15 +19,14 @@ class DetectorMessenger;
 
 /// Detector construction class to define materials, geometry
 
-class DetectorConstruction : public G4VUserDetectorConstruction
-{
+class DetectorConstruction : public G4VUserDetectorConstruction {
 public:
     DetectorConstruction();
     ~DetectorConstruction() override;
 
-    G4VPhysicalVolume *Construct() override;
+    G4VPhysicalVolume* Construct() override;
     void ConstructSDandField() override;
-    auto GetCellNumber() const->const auto&{return cellNumber;}
+    auto GetCellNumber() const -> const auto& { return cellNumber; }
     // Set methods
 
 private:
@@ -38,7 +37,6 @@ private:
     // data members
     G4bool fCheckOverlaps = true; // option to activate checking of volumes overlaps
     G4int cellNumber;
-
 };
 
 #endif

@@ -1,35 +1,32 @@
 #include "RunAction.hh"
+
 #include "DetectorConstruction.hh"
+#include "G4AnalysisManager.hh"
+#include "G4Run.hh"
+#include "G4RunManager.hh"
+#include "G4Timer.hh"
 #include "ScintillatorHit.hh"
 #include "ScintillatorSD.hh"
 #include "SiPMHit.hh"
 #include "SiPMSD.hh"
 
-#include "G4Run.hh"
-#include "G4RunManager.hh"
-#include "G4AnalysisManager.hh"
-#include "G4Timer.hh"
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+RunAction::RunAction() :
+    G4UserRunAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-RunAction::RunAction()
-: G4UserRunAction()
-{}
+RunAction::~RunAction() {}
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-RunAction::~RunAction()
-{}
-
-void RunAction::BeginOfRunAction(const G4Run *run)
-{
+void RunAction::BeginOfRunAction(const G4Run* run) {
     auto analysisManager = G4AnalysisManager::Instance();
 
 #ifdef G4MULTITHREADED
     analysisManager->SetNtupleMerging(true);
 #endif
 
-    analysisManager->OpenFile( "test.root");
+    analysisManager->OpenFile("test.root");
 
     analysisManager->CreateNtuple("cellHit", "result");
     analysisManager->CreateNtupleIColumn("cellID");
@@ -46,8 +43,7 @@ void RunAction::BeginOfRunAction(const G4Run *run)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void RunAction::EndOfRunAction(const G4Run *)
-{
+void RunAction::EndOfRunAction(const G4Run*) {
     auto analysisManager = G4AnalysisManager::Instance();
     analysisManager->Write();
     analysisManager->CloseFile();

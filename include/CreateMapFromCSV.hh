@@ -3,8 +3,8 @@
 
 #include <fstream>
 #include <map>
-#include <string>
 #include <sstream>
+#include <string>
 #include <vector>
 
 // Read a csv file in this format:
@@ -45,8 +45,7 @@ std::map<std::string, std::vector<float_type>> CreateMapFromCSV(const std::strin
             "CreateMapFromCSV(const std::string& csvFileName)",
             "DataFileNotFound",
             JustWarning,
-            exception_description
-        );
+            exception_description);
         return map<string, vector<float_type>>();
     }
 
@@ -55,25 +54,25 @@ std::map<std::string, std::vector<float_type>> CreateMapFromCSV(const std::strin
     string line;
     while (!fin.eof()) {
         getline(fin, line);
-        if (line.empty()) { continue; }  // Skip if empty.
+        if (line.empty()) { continue; } // Skip if empty.
         size_t annotationPos = line.find_first_of('#');
-        if (annotationPos != string::npos) {  // If there are annotation,
-            line.erase(annotationPos); // drop annotation.
+        if (annotationPos != string::npos) { // If there are annotation,
+            line.erase(annotationPos);       // drop annotation.
             if (annotationPos == 0) {
                 continue;
-            } else if (line[annotationPos - 1] == ',') {  // If there is a comma before annotation,
-                line.erase(annotationPos - 1);  // drop this comma.
+            } else if (line[annotationPos - 1] == ',') { // If there is a comma before annotation,
+                line.erase(annotationPos - 1);           // drop this comma.
             }
         }
-        if (line.empty()) { continue; }  // Skip if there is only annotation.
+        if (line.empty()) { continue; } // Skip if there is only annotation.
 
         size_t nextCommaPos = line.find_first_of(',');
         if (nextCommaPos == 0) { continue; } // If there is no key, skip.
         if (nextCommaPos == string::npos) {  // If there is no data,
-            data.insert({ line,{} });  // create a map without data.
+            data.insert({line, {}});         // create a map without data.
             continue;
         }
-        string keyString(line.substr(0, nextCommaPos));  // The key.
+        string keyString(line.substr(0, nextCommaPos)); // The key.
 
         vector<float_type> propertyVector;
         size_t lastCommaPos;
@@ -86,7 +85,7 @@ std::map<std::string, std::vector<float_type>> CreateMapFromCSV(const std::strin
             propertyVector.push_back(property);
         } while (nextCommaPos != string::npos);
 
-        data.insert({ keyString,propertyVector });
+        data.insert({keyString, propertyVector});
     }
     fin.close();
     return data;

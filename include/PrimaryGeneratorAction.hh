@@ -7,17 +7,15 @@
 class G4GeneralParticleSource;
 class G4Event;
 
-class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
-{
-  public:
+class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
+public:
     PrimaryGeneratorAction();
     virtual ~PrimaryGeneratorAction();
 
     virtual void GeneratePrimaries(G4Event* anEvent);
 
-
-  private:
-    G4GeneralParticleSource*  fParticleGun;
+private:
+    G4GeneralParticleSource* fParticleGun;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
