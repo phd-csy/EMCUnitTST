@@ -57,6 +57,8 @@ int main(int argc, char **argv)
 
     G4VModularPhysicsList *physicsList = new FTFP_BERT(0);
     physicsList->RegisterPhysics(new G4OpticalPhysics(0));
+    auto opticalParams = G4OpticalParameters::Instance();
+    opticalParams->SetBoundaryInvokeSD(true);
     // physicsList->RegisterPhysics(new G4RadioactiveDecayPhysics(0));
     physicsList->ReplacePhysics(new G4EmStandardPhysics_option4(0));
     runManager->SetUserInitialization(physicsList);

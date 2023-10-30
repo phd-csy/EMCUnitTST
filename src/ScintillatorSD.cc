@@ -19,14 +19,15 @@ void ScintillatorSD::Initialize(G4HCofThisEvent *hcOfThisEvent)
     hc = new ScintillatorHC(SensitiveDetectorName, collectionName[0]);
     auto hcID = G4SDManager::GetSDMpointer()->GetCollectionID(collectionName[0]);
     hcOfThisEvent->AddHitsCollection(hcID, hc);
-    for (auto i = 0; i < cellNumberTotal; i++)
+    // for (auto i = 0; i < cellNumberTotal; i++)
         hc->insert(new ScintillatorHit());
 }
 
 G4bool ScintillatorSD::ProcessHits(G4Step *step, G4TouchableHistory *)
 {
     auto copyNo = step->GetTrack()->GetVolume()->GetCopyNo();
-    (*hc)[copyNo]->AddEnergyDeposit(step->GetTotalEnergyDeposit());
+    // (*hc)[copyNo]->AddEnergyDeposit(step->GetTotalEnergyDeposit());
+    hc->AddEnergyDeposit(step->GetTotalEnergyDeposit());
 
     return true;
 }

@@ -1,43 +1,44 @@
 #include "DetectorConstruction.hh"
-#include "ScintillatorHit.hh"
-#include "ScintillatorSD.hh"
-#include "SiPMHit.hh"
-#include "SiPMSD.hh"
 
 #include "G4AutoDelete.hh"
 #include "G4Box.hh"
 #include "G4Colour.hh"
+#include "G4Element.hh"
 #include "G4ExtrudedSolid.hh"
 #include "G4GeometryManager.hh"
 #include "G4GeometryTolerance.hh"
 #include "G4GlobalMagFieldMessenger.hh"
+#include "G4Isotope.hh"
+#include "G4LogicalSkinSurface.hh"
 #include "G4LogicalVolume.hh"
 #include "G4Material.hh"
 #include "G4NistManager.hh"
+#include "G4OpticalMaterialProperties.hh"
+#include "G4OpticalSurface.hh"
 #include "G4PhysicalConstants.hh"
 #include "G4PVPlacement.hh"
 #include "G4QuadrangularFacet.hh"
+#include "G4RunManager.hh"
 #include "G4SDManager.hh"
-#include "G4UnionSolid.hh"
 #include "G4SubtractionSolid.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4TessellatedSolid.hh"
 #include "G4ThreeVector.hh"
+#include "G4Trd.hh"
 #include "G4TriangularFacet.hh"
 #include "G4Tubs.hh"
+#include "G4UnionSolid.hh"
 #include "G4UserLimits.hh"
 #include "G4VisAttributes.hh"
-#include "G4OpticalSurface.hh"
-#include "G4LogicalSkinSurface.hh"
-#include "G4RunManager.hh"
-#include "G4Element.hh"
-#include "G4Isotope.hh"
-
 #include "pmp/algorithms/differential_geometry.h"
 #include "pmp/algorithms/normals.h"
 #include "pmp/algorithms/subdivision.h"
 #include "pmp/algorithms/utilities.h"
 #include "pmp/surface_mesh.h"
+#include "ScintillatorHit.hh"
+#include "ScintillatorSD.hh"
+#include "SiPMHit.hh"
+#include "SiPMSD.hh"
 
 #include <algorithm>
 #include <cmath>
@@ -63,9 +64,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto galactic = new G4Material("galactic", 1, 1.008 * g / mole, 1.e-25 * g / cm3, kStateGas, 2.73 * kelvin, 3.e-18 * pascal);
     const auto air = nistManager->FindOrBuildMaterial("G4_AIR");
     const auto aluminum = nistManager->FindOrBuildMaterial("G4_Al");
-    // const auto bgo = nistManager->FindOrBuildMaterial("G4_BGO");
     const auto silicon = nistManager->FindOrBuildMaterial("G4_Si");
-    // const auto csI = nistManager->FindOrBuildMaterial("G4_CESIUM_IODIDE");
     const auto pvc = nistManager->FindOrBuildMaterial("G4_POLYVINYL_CHLORIDE");
 
     const auto carbonElement = nistManager->FindOrBuildElement("C");
@@ -79,6 +78,11 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     siliconeOil->AddElement(oxygenElement, 1);
     siliconeOil->AddElement(siliconElement, 1);
 
+    const auto pmma = new G4Material("PMMA", 1.19 * g / cm3, 3, kStateSolid);
+    pmma->AddElement(hydrogenElement, 0.080545);
+    pmma->AddElement(carbonElement, 0.599836);
+    pmma->AddElement(oxygenElement, 0.319619);
+
     const auto cesiumElement = nistManager->FindOrBuildElement("Ce");
     const auto iodideElement = nistManager->FindOrBuildElement("I");
     const auto thaliumElement = nistManager->FindOrBuildElement("Tl");
@@ -89,24 +93,22 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto yttriumElement = nistManager->FindOrBuildElement("Y");
     const auto lutetiumElement = nistManager->FindOrBuildElement("Lu");
 
-    const auto csI = new G4Material("CsI", 4.51 * g/cm3, 3, kStateSolid);
+    const auto csI = new G4Material("CsI", 4.51 * g / cm3, 3, kStateSolid);
     csI->AddElement(cesiumElement, 0.507556);
     csI->AddElement(iodideElement, 0.484639);
     csI->AddElement(thaliumElement, 0.007805);
 
-    const auto labr = new G4Material("LaBr3", 5.08 * g/cm3, 3, kStateSolid);
+    const auto labr = new G4Material("LaBr3", 5.08 * g / cm3, 3, kStateSolid);
     labr->AddElement(bromideElement, 0.631308);
     labr->AddElement(cesiumElement, 0.036582);
     labr->AddElement(lanthanumElement, 0.332110);
 
-    const auto lyso = new G4Material("LYSO", 7.1 * g/cm3, 5, kStateSolid);
+    const auto lyso = new G4Material("LYSO", 7.1 * g / cm3, 5, kStateSolid);
     lyso->AddElement(oxygenElement, 0.175801);
     lyso->AddElement(siliconElement, 0.061720);
     lyso->AddElement(yttriumElement, 0.019538);
     lyso->AddElement(lutetiumElement, 0.730562);
     lyso->AddElement(cesiumElement, 0.012379);
-
-
 
     // Define Optical Properties
     std::vector<G4double> energy;
@@ -115,10 +117,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     std::vector<G4double> reflectivity;
     std::vector<G4double> absoption;
 
-//============================================ silicone oil ============================================
+    //============================================ silicone oil ============================================
 
     // silicone oil refractive index
-    energy = {8.01532E-07*eV, 1.89386E-06*eV, 1.92915E-06*eV, 2.1093E-06*eV, 2.27541E-06*eV, 2.55633E-06*eV, 2.58828E-06*eV};
+    energy = {8.01532E-07 * eV, 1.89386E-06 * eV, 1.92915E-06 * eV, 2.1093E-06 * eV, 2.27541E-06 * eV, 2.55633E-06 * eV, 2.58828E-06 * eV};
     rindex = {1.3912, 1.3992, 1.3997, 1.4015, 1.4034, 1.4071, 1.4076};
     const auto siliconeOilRefIndex = new G4MaterialPropertyVector(&energy.front(), &rindex.front(), energy.size());
 
@@ -133,7 +135,16 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     siliconeOilPropertiesTable->AddProperty("ABSLENGTH", siliconeOilAbsLength);
     siliconeOil->SetMaterialPropertiesTable(siliconeOilPropertiesTable);
 
-//============================================ SiPM ============================================
+    //============================================ PMMA ============================================
+
+    absoption = {20. * m, 20. * m};
+    const auto pmmaAbsLength = new G4MaterialPropertyVector(&energy.front(), &absoption.front(), energy.size());
+    auto pmmaPropertiesTable = new G4MaterialPropertiesTable();
+    pmmaPropertiesTable->AddProperty("RINDEX", "PMMA");
+    pmmaPropertiesTable->AddProperty("ABSLENGTH", pmmaAbsLength);
+    pmma->SetMaterialPropertiesTable(pmmaPropertiesTable);
+
+    //============================================ SiPM ============================================
 
     // // SiPM refractive index
     // energy = {1.587 * eV, 3.095 * eV};
@@ -151,87 +162,76 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     // siPMPropertiesTable->AddProperty("ABSLENGTH", siPMAbsLength);
     // silicon->SetMaterialPropertiesTable(siPMPropertiesTable);
 
-//============================================ Crystal ============================================
+    //============================================ Crystal ============================================
 
-    //CsI(Tl)
+    // CsI(Tl)
     auto csiPropertiesTable = new G4MaterialPropertiesTable;
     auto csiProperties(CreateMapFromCSV<G4double>("data/CsI_properties.csv"));
     csiPropertiesTable->AddProperty(
         "RINDEX",
         &csiProperties["energy"].front(),
         &csiProperties["RINDEX"].front(),
-        csiProperties["RINDEX"].size()
-    );
+        csiProperties["RINDEX"].size());
     csiPropertiesTable->AddProperty(
-    "ABSLENGTH",
-    &csiProperties["energy"].front(),
-    &csiProperties["ABSLENGTH"].front(),
-    csiProperties["ABSLENGTH"].size()
-    );
+        "ABSLENGTH",
+        &csiProperties["energy"].front(),
+        &csiProperties["ABSLENGTH"].front(),
+        csiProperties["ABSLENGTH"].size());
     csiPropertiesTable->AddProperty(
         "SCINTILLATIONCOMPONENT1",
         &csiProperties["energy"].front(),
         &csiProperties["SCINTILLATIONCOMPONENT1"].front(),
-        csiProperties["SCINTILLATIONCOMPONENT1"].size()
-    );
+        csiProperties["SCINTILLATIONCOMPONENT1"].size());
     csiPropertiesTable->AddConstProperty("SCINTILLATIONYIELD", csiProperties["SCINTILLATIONYIELD"].front());
     csiPropertiesTable->AddConstProperty("SCINTILLATIONTIMECONSTANT1", csiProperties["SCINTILLATIONTIMECONSTANT1"].front());
     csiPropertiesTable->AddConstProperty("RESOLUTIONSCALE", csiProperties["RESOLUTIONSCALE"].front());
     csI->SetMaterialPropertiesTable(csiPropertiesTable);
 
-    //LaBr3(Ce)
+    // LaBr3(Ce)
     auto labrPropertiesTable = new G4MaterialPropertiesTable;
     auto labrProperties(CreateMapFromCSV<G4double>("data/LaBr_properties.csv"));
     labrPropertiesTable->AddProperty(
         "RINDEX",
         &labrProperties["energy"].front(),
         &labrProperties["RINDEX"].front(),
-        labrProperties["RINDEX"].size()
-    );
+        labrProperties["RINDEX"].size());
     labrPropertiesTable->AddProperty(
         "ABSLENGTH",
         &labrProperties["energy"].front(),
         &labrProperties["ABSLENGTH"].front(),
-        labrProperties["ABSLENGTH"].size()
-    );
+        labrProperties["ABSLENGTH"].size());
     labrPropertiesTable->AddProperty(
         "SCINTILLATIONCOMPONENT1",
         &labrProperties["energy"].front(),
         &labrProperties["SCINTILLATIONCOMPONENT1"].front(),
-        labrProperties["SCINTILLATIONCOMPONENT1"].size()
-    );
+        labrProperties["SCINTILLATIONCOMPONENT1"].size());
     labrPropertiesTable->AddConstProperty("SCINTILLATIONYIELD", labrProperties["SCINTILLATIONYIELD"].front());
     labrPropertiesTable->AddConstProperty("SCINTILLATIONTIMECONSTANT1", labrProperties["SCINTILLATIONTIMECONSTANT1"].front());
     labrPropertiesTable->AddConstProperty("RESOLUTIONSCALE", labrProperties["RESOLUTIONSCALE"].front());
     labr->SetMaterialPropertiesTable(labrPropertiesTable);
 
-    //LYSO(Ce)
+    // LYSO(Ce)
     auto lysoPropertiesTable = new G4MaterialPropertiesTable;
     auto lysoProperties(CreateMapFromCSV<G4double>("data/LYSO_properties.csv"));
     lysoPropertiesTable->AddProperty(
         "RINDEX",
         &lysoProperties["energy"].front(),
         &lysoProperties["RINDEX"].front(),
-        lysoProperties["RINDEX"].size()
-    );
+        lysoProperties["RINDEX"].size());
     lysoPropertiesTable->AddProperty(
         "ABSLENGTH",
         &lysoProperties["energy"].front(),
         &lysoProperties["ABSLENGTH"].front(),
-        lysoProperties["ABSLENGTH"].size()
-    );
+        lysoProperties["ABSLENGTH"].size());
     lysoPropertiesTable->AddProperty(
         "SCINTILLATIONCOMPONENT1",
         &lysoProperties["energy"].front(),
         &lysoProperties["SCINTILLATIONCOMPONENT1"].front(),
-        lysoProperties["SCINTILLATIONCOMPONENT1"].size()
-    );
+        lysoProperties["SCINTILLATIONCOMPONENT1"].size());
     lysoPropertiesTable->AddConstProperty("SCINTILLATIONYIELD", lysoProperties["SCINTILLATIONYIELD"].front());
     lysoPropertiesTable->AddConstProperty("SCINTILLATIONTIMECONSTANT1", lysoProperties["SCINTILLATIONTIMECONSTANT1"].front());
     lysoPropertiesTable->AddConstProperty("RESOLUTIONSCALE", lysoProperties["RESOLUTIONSCALE"].front());
     lyso->SetMaterialPropertiesTable(lysoPropertiesTable);
-
-
 
     // Define World Volume
 
@@ -248,84 +248,73 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
         0,
         true);
 
-    const auto fCrystalHalfWidth = 2.5*cm;
-    const auto fCrystalHalfLength = 7.5*cm;
-    const auto fCrystalCoatSpacing = 10.*um;
+    const auto fCrystalHalfWidth = 2.5 * cm;
+    const auto fCrystalHalfLength = 7.5 * cm;
+
     const auto fReflectiveCoatThickenss = 20. * um;
     const auto fProtectiveCoatThickenss = 50. * um;
-    const auto fSiPMHalfWidth = 3*cm;
-    const auto fSiPMHalfThickness = 0.5*cm;
-    const auto fCouplerHalfWidth = fSiPMHalfWidth;
-    const auto fCouplerHalfThickness = 500*um;
 
-    const auto translation1 = G4ThreeVector(0., 0., fCrystalHalfLength+fCouplerHalfThickness);
-    const auto translation2 = G4ThreeVector(0., 0., fCrystalHalfLength+fCouplerHalfThickness*2+fSiPMHalfThickness);
+    auto fSiPMHalfWidth = 3 * mm;
+    const auto fSiPMHalfThickness = 0.425 * mm;
 
-    const auto albox = new G4Box("albox", fCrystalHalfWidth+fReflectiveCoatThickenss, fCrystalHalfWidth+fReflectiveCoatThickenss, fCrystalHalfLength+fReflectiveCoatThickenss);
+    const auto fCouplerHalfWidth = 2.5 * cm;
+    const auto fCouplerHalfThickness = 200 * um;
+
+    const auto fGuideHalfThickness = 0.5 * cm;
+    const auto fGuideHalfLowerWidth = 2.5 * cm;
+    const auto fGuideHalfUpperWidth = fSiPMHalfWidth;
+
+    const auto translation1 = G4ThreeVector(0., 0., fCrystalHalfLength + fCouplerHalfThickness);
+    // // guide
+    // const auto translation2 = G4ThreeVector(0., 0., fCrystalHalfLength + fCouplerHalfThickness * 2 + fGuideHalfThickness);
+    // const auto translation3 = G4ThreeVector(0., 0., fCrystalHalfLength + fCouplerHalfThickness * 2 + fGuideHalfThickness * 2 + fCouplerHalfThickness);
+    // const auto translation4 = G4ThreeVector(0., 0., fCrystalHalfLength + fCouplerHalfThickness * 2 + fGuideHalfThickness * 2 + fCouplerHalfThickness * 2 + fSiPMHalfThickness);
+
+    // no guide
+    // fSiPMHalfWidth = fCrystalHalfWidth;
+    const auto translation4 = G4ThreeVector(0., 0., fCrystalHalfLength + fCouplerHalfThickness * 2 + fSiPMHalfThickness);
+
+    // Construct Volume
+    const auto albox = new G4Box("albox", fCrystalHalfWidth + fReflectiveCoatThickenss, fCrystalHalfWidth + fReflectiveCoatThickenss, fCrystalHalfLength + fReflectiveCoatThickenss);
 
     const auto crystalSV = new G4Box("crystal", fCrystalHalfWidth, fCrystalHalfWidth, fCrystalHalfLength);
 
-//========================================== CsI(Tl) ============================================
-    const auto crystalLV = new G4LogicalVolume{crystalSV, csI, "crystal"};
-//========================================== LaBr3(Ce) ==========================================
+    //========================================== CsI(Tl) ============================================
+    // const auto crystalLV = new G4LogicalVolume{crystalSV, csI, "crystal"};
+    //========================================== LaBr3(Ce) ==========================================
     // const auto crystalLV = new G4LogicalVolume{crystalSV, labr, "crystal"};
-//========================================== LYSO(Ce) ===========================================
-    // const auto crystalLV = new G4LogicalVolume{crystalSV, lyso, "crystal"};
-//===============================================================================================
+    //========================================== LYSO(Ce) ===========================================
+    const auto crystalLV = new G4LogicalVolume{crystalSV, lyso, "crystal"};
+    //===============================================================================================
 
-    new G4PVPlacement(
-    nullptr,
-    G4ThreeVector(),
-    crystalLV,
-    "crystal",
-    worldLV,
-    false,
-    0,
-    true);
+    new G4PVPlacement(nullptr, G4ThreeVector(), crystalLV, "crystal", worldLV, false, 0, true);
 
     const auto sipmSV = new G4Box("sipm", fSiPMHalfWidth, fSiPMHalfWidth, fSiPMHalfThickness);
     const auto sipmLV = new G4LogicalVolume(sipmSV, silicon, "sipm");
-    new G4PVPlacement(
-    nullptr,
-    translation2,
-    sipmLV,
-    "sipm",
-    worldLV,
-    false,
-    0,
-    true);
+    new G4PVPlacement(nullptr, translation4, sipmLV, "sipm", worldLV, false, 0, true);
 
     const auto couplerSV = new G4Box("coupler", fCouplerHalfWidth, fCouplerHalfWidth, fCouplerHalfThickness);
     const auto couplerLV = new G4LogicalVolume(couplerSV, siliconeOil, "coupler");
-    new G4PVPlacement(
-        nullptr,
-        translation1,
-        couplerLV,
-        "coupler",
-        worldLV,
-        false,
-        0,
-        true
-    );
+    new G4PVPlacement(nullptr, translation1, couplerLV, "coupler", worldLV, false, 0, true);
 
     const auto unionSolid = new G4UnionSolid("unionSolid", crystalSV, couplerSV, 0, translation1);
 
     const auto alSV = new G4SubtractionSolid("al", albox, unionSolid);
     const auto alLV = new G4LogicalVolume(alSV, aluminum, "al");
-    new G4PVPlacement(
-    nullptr,
-    G4ThreeVector(),
-    alLV,
-    "al",
-    worldLV,
-    false,
-    0,
-    true);
+    new G4PVPlacement(nullptr, G4ThreeVector(), alLV, "al", worldLV, false, 0, true);
 
+    // // guide
+    // const auto guideSV = new G4Trd("guide", fGuideHalfLowerWidth, fGuideHalfUpperWidth, fGuideHalfLowerWidth, fGuideHalfUpperWidth, fGuideHalfThickness);
+    // const auto guideLV = new G4LogicalVolume(guideSV, pmma, "guide");
+    // new G4PVPlacement(nullptr, translation2, guideLV, "guide", worldLV, false, 0, true);
+
+    // const auto coupler2SV = new G4Box("coupler2", fSiPMHalfWidth, fSiPMHalfWidth, fCouplerHalfThickness);
+    // const auto coupler2LV = new G4LogicalVolume(coupler2SV, siliconeOil, "coupler2");
+    // new G4PVPlacement(nullptr, translation3, coupler2LV, "coupler", worldLV, false, 0, true);
 
     // Define Surface
 
-    energy = {1.0*eV, 20.0*eV};
+    energy = {1. * eV, 20. * eV};
     reflectivity = {0.95, 0.95};
 
     auto alSurfacePropertiesTable = new G4MaterialPropertiesTable();
@@ -334,15 +323,34 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     alSurfacePropertiesTable->AddProperty("REFLECTIVITY", energy, reflectivity);
     alSurface->SetMaterialPropertiesTable(alSurfacePropertiesTable);
 
-    energy = {1.0*eV, 20.0*eV};
+    energy = {1. * eV, 20. * eV};
+    reflectivity = {0, 0};
     efficiency = {1, 1};
 
     auto sipmSurfacePropertiesTable = new G4MaterialPropertiesTable();
     auto sipmSurface = new G4OpticalSurface("SiPM", unified, polished, dielectric_metal);
     new G4LogicalSkinSurface("sipmSkinSurface", sipmLV, sipmSurface);
+    sipmSurfacePropertiesTable->AddProperty("REFLECTIVITY", energy, reflectivity);
     sipmSurfacePropertiesTable->AddProperty("EFFICIENCY", energy, efficiency);
     sipmSurface->SetMaterialPropertiesTable(sipmSurfacePropertiesTable);
 
+    // auto sipmSurfacePropertiesTable = new G4MaterialPropertiesTable();
+    // auto sipmSurfaceProperties(CreateMapFromCSV<G4double>("data/SiPM_properties.csv"));
+    // auto sipmSurface = new G4OpticalSurface("SiPM", unified, polished, dielectric_metal);
+    // new G4LogicalSkinSurface("sipmSkinSurface", sipmLV, sipmSurface);
+    // sipmSurfacePropertiesTable->AddProperty(
+    //     "REFLECTIVITY",
+    //     &sipmSurfaceProperties["energy"].front(),
+    //     &sipmSurfaceProperties["REFLECTIVITY"].front(),
+    //     sipmSurfaceProperties["REFLECTIVITY"].size()
+    // );
+    // sipmSurfacePropertiesTable->AddProperty(
+    //     "EFFICIENCY",
+    //     &sipmSurfaceProperties["energy"].front(),
+    //     &sipmSurfaceProperties["EFFICIENCY"].front(),
+    //     sipmSurfaceProperties["EFFICIENCY"].size()
+    // );
+    // sipmSurface->SetMaterialPropertiesTable(sipmSurfacePropertiesTable);
 
     ++cellNumber;
 
