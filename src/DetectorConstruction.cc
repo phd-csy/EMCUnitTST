@@ -9,6 +9,7 @@
 #include "G4GeometryTolerance.hh"
 #include "G4GlobalMagFieldMessenger.hh"
 #include "G4Isotope.hh"
+#include "G4LogicalBorderSurface.hh"
 #include "G4LogicalSkinSurface.hh"
 #include "G4LogicalVolume.hh"
 #include "G4Material.hh"
@@ -78,11 +79,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     siliconeOil->AddElement(oxygenElement, 1);
     siliconeOil->AddElement(siliconElement, 1);
 
-    const auto pmma = new G4Material("PMMA", 1.19 * g / cm3, 3, kStateSolid);
-    pmma->AddElement(hydrogenElement, 0.080545);
-    pmma->AddElement(carbonElement, 0.599836);
-    pmma->AddElement(oxygenElement, 0.319619);
-
     const auto cesiumElement = nistManager->FindOrBuildElement("Ce");
     const auto iodideElement = nistManager->FindOrBuildElement("I");
     const auto thaliumElement = nistManager->FindOrBuildElement("Tl");
@@ -115,6 +111,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     std::vector<G4double> rindex;
     std::vector<G4double> efficiency;
     std::vector<G4double> reflectivity;
+    std::vector<G4double> transmittance;
     std::vector<G4double> absoption;
 
     //============================================ silicone oil ============================================
@@ -134,33 +131,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     siliconeOilPropertiesTable->AddProperty("RINDEX", siliconeOilRefIndex);
     siliconeOilPropertiesTable->AddProperty("ABSLENGTH", siliconeOilAbsLength);
     siliconeOil->SetMaterialPropertiesTable(siliconeOilPropertiesTable);
-
-    //============================================ PMMA ============================================
-
-    absoption = {20. * m, 20. * m};
-    const auto pmmaAbsLength = new G4MaterialPropertyVector(&energy.front(), &absoption.front(), energy.size());
-    auto pmmaPropertiesTable = new G4MaterialPropertiesTable();
-    pmmaPropertiesTable->AddProperty("RINDEX", "PMMA");
-    pmmaPropertiesTable->AddProperty("ABSLENGTH", pmmaAbsLength);
-    pmma->SetMaterialPropertiesTable(pmmaPropertiesTable);
-
-    //============================================ SiPM ============================================
-
-    // // SiPM refractive index
-    // energy = {1.587 * eV, 3.095 * eV};
-    // rindex = {1.403, 1.406};
-    // const auto siPMRefIndex = new G4MaterialPropertyVector(&energy.front(), &rindex.front(), energy.size());
-
-    // // SiPM absoption length
-    // energy = {1.0 * eV, 20.0 * eV};
-    // absoption = {0*cm, 0*cm};
-    // const auto siPMAbsLength = new G4MaterialPropertyVector(&energy.front(), &absoption.front(), energy.size());
-
-    // // add
-    // auto siPMPropertiesTable = new G4MaterialPropertiesTable();
-    // siPMPropertiesTable->AddProperty("RINDEX", siPMRefIndex);
-    // siPMPropertiesTable->AddProperty("ABSLENGTH", siPMAbsLength);
-    // silicon->SetMaterialPropertiesTable(siPMPropertiesTable);
 
     //============================================ Crystal ============================================
 
@@ -254,83 +224,59 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto fReflectiveCoatThickenss = 20. * um;
     const auto fProtectiveCoatThickenss = 50. * um;
 
-    auto fSiPMHalfWidth = 3 * mm;
+    const auto fSiPMHalfWidth = 2.5 * cm;
     const auto fSiPMHalfThickness = 0.425 * mm;
 
     const auto fCouplerHalfWidth = 2.5 * cm;
     const auto fCouplerHalfThickness = 200 * um;
 
-    const auto fGuideHalfThickness = 0.5 * cm;
-    const auto fGuideHalfLowerWidth = 2.5 * cm;
-    const auto fGuideHalfUpperWidth = fSiPMHalfWidth;
-
     const auto translation1 = G4ThreeVector(0., 0., fCrystalHalfLength + fCouplerHalfThickness);
-    // // guide
-    // const auto translation2 = G4ThreeVector(0., 0., fCrystalHalfLength + fCouplerHalfThickness * 2 + fGuideHalfThickness);
-    // const auto translation3 = G4ThreeVector(0., 0., fCrystalHalfLength + fCouplerHalfThickness * 2 + fGuideHalfThickness * 2 + fCouplerHalfThickness);
-    // const auto translation4 = G4ThreeVector(0., 0., fCrystalHalfLength + fCouplerHalfThickness * 2 + fGuideHalfThickness * 2 + fCouplerHalfThickness * 2 + fSiPMHalfThickness);
-
-    // no guide
-    // fSiPMHalfWidth = fCrystalHalfWidth;
-    const auto translation4 = G4ThreeVector(0., 0., fCrystalHalfLength + fCouplerHalfThickness * 2 + fSiPMHalfThickness);
+    const auto translation2 = G4ThreeVector(0., 0., fCrystalHalfLength + fCouplerHalfThickness * 2 + fSiPMHalfThickness);
 
     // Construct Volume
-    const auto albox = new G4Box("albox", fCrystalHalfWidth + fReflectiveCoatThickenss, fCrystalHalfWidth + fReflectiveCoatThickenss, fCrystalHalfLength + fReflectiveCoatThickenss);
-
     const auto crystalSV = new G4Box("crystal", fCrystalHalfWidth, fCrystalHalfWidth, fCrystalHalfLength);
 
     //========================================== CsI(Tl) ============================================
-    // const auto crystalLV = new G4LogicalVolume{crystalSV, csI, "crystal"};
+    const auto crystalLV = new G4LogicalVolume{crystalSV, csI, "crystal"};
     //========================================== LaBr3(Ce) ==========================================
     // const auto crystalLV = new G4LogicalVolume{crystalSV, labr, "crystal"};
     //========================================== LYSO(Ce) ===========================================
-    const auto crystalLV = new G4LogicalVolume{crystalSV, lyso, "crystal"};
+    // const auto crystalLV = new G4LogicalVolume{crystalSV, lyso, "crystal"};
     //===============================================================================================
-
-    new G4PVPlacement(nullptr, G4ThreeVector(), crystalLV, "crystal", worldLV, false, 0, true);
-
-    const auto sipmSV = new G4Box("sipm", fSiPMHalfWidth, fSiPMHalfWidth, fSiPMHalfThickness);
-    const auto sipmLV = new G4LogicalVolume(sipmSV, silicon, "sipm");
-    new G4PVPlacement(nullptr, translation4, sipmLV, "sipm", worldLV, false, 0, true);
+    const auto crystalPV = new G4PVPlacement(nullptr, G4ThreeVector(), crystalLV, "crystal", worldLV, false, 0, true);
 
     const auto couplerSV = new G4Box("coupler", fCouplerHalfWidth, fCouplerHalfWidth, fCouplerHalfThickness);
     const auto couplerLV = new G4LogicalVolume(couplerSV, siliconeOil, "coupler");
     new G4PVPlacement(nullptr, translation1, couplerLV, "coupler", worldLV, false, 0, true);
 
-    const auto unionSolid = new G4UnionSolid("unionSolid", crystalSV, couplerSV, 0, translation1);
-
-    const auto alSV = new G4SubtractionSolid("al", albox, unionSolid);
-    const auto alLV = new G4LogicalVolume(alSV, aluminum, "al");
-    new G4PVPlacement(nullptr, G4ThreeVector(), alLV, "al", worldLV, false, 0, true);
-
-    // // guide
-    // const auto guideSV = new G4Trd("guide", fGuideHalfLowerWidth, fGuideHalfUpperWidth, fGuideHalfLowerWidth, fGuideHalfUpperWidth, fGuideHalfThickness);
-    // const auto guideLV = new G4LogicalVolume(guideSV, pmma, "guide");
-    // new G4PVPlacement(nullptr, translation2, guideLV, "guide", worldLV, false, 0, true);
-
-    // const auto coupler2SV = new G4Box("coupler2", fSiPMHalfWidth, fSiPMHalfWidth, fCouplerHalfThickness);
-    // const auto coupler2LV = new G4LogicalVolume(coupler2SV, siliconeOil, "coupler2");
-    // new G4PVPlacement(nullptr, translation3, coupler2LV, "coupler", worldLV, false, 0, true);
+    const auto sipmSV = new G4Box("sipm", fSiPMHalfWidth, fSiPMHalfWidth, fSiPMHalfThickness);
+    const auto sipmLV = new G4LogicalVolume(sipmSV, silicon, "sipm");
+    new G4PVPlacement(nullptr, translation4, sipmLV, "sipm", worldLV, false, 0, true);
 
     // Define Surface
 
     energy = {1. * eV, 20. * eV};
-    reflectivity = {0.95, 0.95};
+    reflectivity = {1, 1};
 
-    auto alSurfacePropertiesTable = new G4MaterialPropertiesTable();
-    auto alSurface = new G4OpticalSurface("Al foil", unified, polished, dielectric_metal);
-    new G4LogicalSkinSurface("AlSkinSurface", alLV, alSurface);
-    alSurfacePropertiesTable->AddProperty("REFLECTIVITY", energy, reflectivity);
-    alSurface->SetMaterialPropertiesTable(alSurfacePropertiesTable);
+    auto scSurfacePropertiesTable = new G4MaterialPropertiesTable();
+    auto scSurface = new G4OpticalSurface("scintillator surface");
+    scSurface->SetModel(LUT);
+    scSurface->SetFinish(polishedvm2000glue);
+    scSurface->SetType(dielectric_LUT);
+    new G4LogicalBorderSurface("scSurface", crystalPV, worldPV, scSurface);
+    // scSurfacePropertiesTable->AddProperty("REFLECTIVITY", energy, reflectivity);
+    // scSurface->SetMaterialPropertiesTable(scSurfacePropertiesTable);
 
     energy = {1. * eV, 20. * eV};
     reflectivity = {0, 0};
+    transmittance = {1, 1};
     efficiency = {1, 1};
 
     auto sipmSurfacePropertiesTable = new G4MaterialPropertiesTable();
     auto sipmSurface = new G4OpticalSurface("SiPM", unified, polished, dielectric_metal);
     new G4LogicalSkinSurface("sipmSkinSurface", sipmLV, sipmSurface);
     sipmSurfacePropertiesTable->AddProperty("REFLECTIVITY", energy, reflectivity);
+    sipmSurfacePropertiesTable->AddProperty("TRANSMITTANCE", energy, transmittance);
     sipmSurfacePropertiesTable->AddProperty("EFFICIENCY", energy, efficiency);
     sipmSurface->SetMaterialPropertiesTable(sipmSurfacePropertiesTable);
 

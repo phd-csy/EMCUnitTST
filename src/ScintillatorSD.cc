@@ -26,7 +26,6 @@ G4bool ScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory*) {
 
     auto copyNo = step->GetTrack()->GetVolume()->GetCopyNo();
     (*hc)[copyNo]->AddEnergyDeposit(step->GetTotalEnergyDeposit());
-    hc->AddEnergyDeposit(step->GetTotalEnergyDeposit());
 
     return true;
 }
