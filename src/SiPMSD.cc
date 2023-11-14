@@ -23,6 +23,8 @@ G4bool SiPMSD::ProcessHits(G4Step* step, G4TouchableHistory*) {
     if (particleDefinition != G4OpticalPhoton::OpticalPhotonDefinition())
         return false;
 
+    step->GetTrack()->SetTrackStatus(fStopAndKill);
+
     auto hit = new SiPMHit;
     auto globalTime = step->GetPostStepPoint()->GetGlobalTime();
     auto copyNo = step->GetTrack()->GetVolume()->GetCopyNo();

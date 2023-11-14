@@ -1,6 +1,7 @@
 #include "ScintillatorSD.hh"
 
 #include "DetectorConstruction.hh"
+#include "G4OpticalPhoton.hh"
 #include "G4RunManager.hh"
 #include "ScintillatorHit.hh"
 
@@ -24,9 +25,10 @@ void ScintillatorSD::Initialize(G4HCofThisEvent* hcOfThisEvent) {
 
 G4bool ScintillatorSD::ProcessHits(G4Step* step, G4TouchableHistory*) {
 
-    auto copyNo = step->GetTrack()->GetVolume()->GetCopyNo();
-    (*hc)[copyNo]->AddEnergyDeposit(step->GetTotalEnergyDeposit());
-    hc->AddEnergyDeposit(step->GetTotalEnergyDeposit());
-
+    auto particleDefinition = step->GetTrack()->GetDefinition();
+    if (particleDefinition != G4OpticalPhoton::OpticalPhotonDefinition()) {
+        auto copyNo = step->GetTrack()->GetVolume()->GetCopyNo();
+        (*hc)[copyNo]->AddEnergyDeposit(step->GetTotalEnergyDeposit());
+    }
     return true;
 }

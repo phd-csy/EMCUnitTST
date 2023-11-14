@@ -1,6 +1,9 @@
 #ifndef CREATE_MAP_FROM_CSV_H_
 #define CREATE_MAP_FROM_CSV_H_ 1
 
+#include "G4Exception.hh"
+#include "G4ios.hh"
+
 #include <fstream>
 #include <map>
 #include <sstream>

@@ -10,5 +10,5 @@
 /gps/pos/centre 0. 0. -10. cm
 /gps/direction 0 0 1
 
-/run/printProgress 50
-/run/beamOn 1000
+/run/printProgress 1000
+/run/beamOn 5000
