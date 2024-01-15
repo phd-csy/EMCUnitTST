@@ -83,7 +83,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     const auto potassiumElement = nistManager->FindOrBuildElement("K");
     const auto antimonyElement = nistManager->FindOrBuildElement("Sb");
-    const auto cesiumElement = nistManager->FindOrBuildElement("Cs");
 
     const auto siliconeOil = new G4Material("silicone_oil", 0.97 * g / cm3, 4, kStateLiquid);
     siliconeOil->AddElement(carbonElement, 2);
@@ -100,7 +99,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     csI->AddElement(iodideElement, 0.484639);
     csI->AddElement(thaliumElement, 0.007805);
 
-    const auto bialkali = new G4Material("Bialkali", 2.0_g_cm3, 3, kStateSolid);
+    const auto bialkali = new G4Material("Bialkali", 2.0 * g / cm3, 3, kStateSolid);
     bialkali->AddElement(potassiumElement, 2);
     bialkali->AddElement(cesiumElement, 1);
     bialkali->AddElement(antimonyElement, 1);
