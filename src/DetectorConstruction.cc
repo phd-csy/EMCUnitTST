@@ -114,13 +114,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     constexpr auto fLambda_min = 200 * nm;
     constexpr auto fLambda_max = 700 * nm;
-    std::vector<G4double> energyPair = {h_Planck * c_light / fLambda_max,
-                                        h_Planck * c_light / fLambda_min};
+    std::vector<G4double> fEnergyPair = {h_Planck * c_light / fLambda_max,
+                                         h_Planck * c_light / fLambda_min};
 
     //============================================ air ================================================
 
     auto MPT_Air = new G4MaterialPropertiesTable();
-    MPT_Air->AddProperty("RINDEX", energyPair, {1.00, 1.00});
+    MPT_Air->AddProperty("RINDEX", fEnergyPair, {1.00, 1.00});
     galactic->SetMaterialPropertiesTable(MPT_Air);
 
     //============================================ silicone oil =======================================
@@ -130,13 +130,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     auto siliconeOilPropertiesTable = new G4MaterialPropertiesTable();
     siliconeOilPropertiesTable->AddProperty("RINDEX", couplerEnergyBin, couplerRefractiveIndex);
-    siliconeOilPropertiesTable->AddProperty("ABSLENGTH", energyPair, {15 * cm, 15 * cm});
+    siliconeOilPropertiesTable->AddProperty("ABSLENGTH", fEnergyPair, {15 * cm, 15 * cm});
     siliconeOil->SetMaterialPropertiesTable(siliconeOilPropertiesTable);
 
     //============================================ Quartz =============================================
 
     auto windowPropertiesTable = new G4MaterialPropertiesTable();
-    windowPropertiesTable->AddProperty("RINDEX", energyPair, {1.54, 1.54});
+    windowPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.54, 1.54});
     glass->SetMaterialPropertiesTable(windowPropertiesTable);
 
     //============================================ Crystal ============================================
@@ -145,9 +145,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     auto csiPropertiesTable = new G4MaterialPropertiesTable;
     auto csiProperties(CreateMapFromCSV<G4double>("data/CsI_properties.csv"));
-    csiPropertiesTable->AddProperty("RINDEX", csiProperties["energy"], csiProperties["RINDEX"]);
-    csiPropertiesTable->AddProperty("GROUPVEL", energyPair, {167.482, 167.482});
-    csiPropertiesTable->AddProperty("ABSLENGTH", csiProperties["energy"], csiProperties["ABSLENGTH"]);
+    csiPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.79, 1.79});
+    csiPropertiesTable->AddProperty("GROUPVEL", fEnergyPair, {167.482, 167.482});
+    csiPropertiesTable->AddProperty("ABSLENGTH", fEnergyPair, {370 * mm, 370 * mm});
     csiPropertiesTable->AddProperty("SCINTILLATIONCOMPONENT1",
                                     csiProperties["energy"],
                                     csiProperties["SCINTILLATIONCOMPONENT1"]);
@@ -200,7 +200,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     // lyso->SetMaterialPropertiesTable(lysoPropertiesTable);
 
     auto rfSurfacePropertiesTable = new G4MaterialPropertiesTable();
-    rfSurfacePropertiesTable->AddProperty("REFLECTIVITY", energyPair, {0.985, 0.985});
+    rfSurfacePropertiesTable->AddProperty("REFLECTIVITY", fEnergyPair, {0.985, 0.985});
+
+    const auto couplerSurfacePropertiesTable = new G4MaterialPropertiesTable();
+    couplerSurfacePropertiesTable->AddProperty("TRANSMITTANCE", fEnergyPair, {1, 1});
+
+    const auto tapeSurfacePropertiesTable = new G4MaterialPropertiesTable();
+    tapeSurfacePropertiesTable->AddProperty("TRANSMITTANCE", fEnergyPair, {0, 0});
 
     std::vector<G4double> pmtWaveLengthBin = {715.759, 704.541, 687.714, 670.887, 654.06, 637.234, 620.807, 606.384,
                                               592.562, 584.019, 577.939, 571.814, 566.671, 562.542, 558.307, 553.099,
@@ -228,7 +234,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
                    [](auto n) { return n * perCent; });
 
     const auto cathodeSurfacePropertiesTable = new G4MaterialPropertiesTable();
-    cathodeSurfacePropertiesTable->AddProperty("REFLECTIVITY", energyPair, {0., 0.});
+    cathodeSurfacePropertiesTable->AddProperty("REFLECTIVITY", fEnergyPair, {0., 0.});
     cathodeSurfacePropertiesTable->AddProperty("EFFICIENCY", cathodeSurfacePropertiesEnergy, cathodeSurfacePropertiesEfficiency);
 
     /////////////////////////////////////////////
@@ -302,21 +308,29 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     // Define Surface
 
-    auto alSurface = new G4OpticalSurface("Al foil", unified, ground, dielectric_metal);
-    new G4LogicalBorderSurface("AlSkinSurface", crystalPV, worldPV, alSurface);
-    alSurface->SetMaterialPropertiesTable(rfSurfacePropertiesTable);
+    const auto rfSurface = new G4OpticalSurface("reflector", unified, ground, dielectric_metal);
+    new G4LogicalBorderSurface("rfSurface", crystalPV, worldPV, rfSurface);
+    rfSurface->SetMaterialPropertiesTable(rfSurfacePropertiesTable);
 
-    auto optocouplerSurface = new G4OpticalSurface("Optocoupler", unified, polished, dielectric_metal);
-    new G4LogicalBorderSurface("optocouplerSurface", couplerPV, worldPV, optocouplerSurface);
-    optocouplerSurface->SetMaterialPropertiesTable(rfSurfacePropertiesTable);
+    const auto couplerSurface = new G4OpticalSurface("coupler", unified, polished, dielectric_dielectric);
+    new G4LogicalBorderSurface("couplerSurface", crystalPV, couplerPV, couplerSurface);
+    couplerSurface->SetMaterialPropertiesTable(couplerSurfacePropertiesTable);
 
-    auto windowSurface = new G4OpticalSurface("Optocoupler", unified, polished, dielectric_metal);
+    const auto couplerRfSurface = new G4OpticalSurface("couplerRf", unified, polished, dielectric_metal);
+    new G4LogicalBorderSurface("couplerRfSurface", couplerPV, worldPV, couplerRfSurface);
+    couplerRfSurface->SetMaterialPropertiesTable(rfSurfacePropertiesTable);
+
+    const auto windowSurface = new G4OpticalSurface("PMTwindow", unified, polished, dielectric_metal);
     new G4LogicalBorderSurface("windowSurface", windowPV, worldPV, windowSurface);
     windowSurface->SetMaterialPropertiesTable(rfSurfacePropertiesTable);
 
     const auto cathodeSurface = new G4OpticalSurface("Cathode", unified, polished, dielectric_metal);
     new G4LogicalSkinSurface("cathodeSkinSurface", sipmLV, cathodeSurface);
     cathodeSurface->SetMaterialPropertiesTable(cathodeSurfacePropertiesTable);
+
+    const auto tapeSurface = new G4OpticalSurface("tape", unified, polished, dielectric_metal);
+    new G4LogicalBorderSurface("protectiveSurface", worldPV, crystalPV, tapeSurface);
+    tapeSurface->SetMaterialPropertiesTable(tapeSurfacePropertiesTable);
 
     // auto cathodeSurfacePropertiesTable = new G4MaterialPropertiesTable();
     // auto cathodeSurfaceProperties(CreateMapFromCSV<G4double>("data/PMT_properties.csv"));
