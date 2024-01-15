@@ -81,6 +81,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto yttriumElement = nistManager->FindOrBuildElement("Y");
     const auto lutetiumElement = nistManager->FindOrBuildElement("Lu");
 
+    const auto potassiumElement = nistManager->FindOrBuildElement("K");
+    const auto antimonyElement = nistManager->FindOrBuildElement("Sb");
+    const auto cesiumElement = nistManager->FindOrBuildElement("Cs");
+
     const auto siliconeOil = new G4Material("silicone_oil", 0.97 * g / cm3, 4, kStateLiquid);
     siliconeOil->AddElement(carbonElement, 2);
     siliconeOil->AddElement(hydrogenElement, 6);
@@ -95,6 +99,11 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     csI->AddElement(cesiumElement, 0.507556);
     csI->AddElement(iodideElement, 0.484639);
     csI->AddElement(thaliumElement, 0.007805);
+
+    const auto bialkali = new G4Material("Bialkali", 2.0_g_cm3, 3, kStateSolid);
+    bialkali->AddElement(potassiumElement, 2);
+    bialkali->AddElement(cesiumElement, 1);
+    bialkali->AddElement(antimonyElement, 1);
 
     // const auto labr = new G4Material("LaBr3", 5.08 * g / cm3, 3, kStateSolid);
     // labr->AddElement(bromideElement, 0.631308);
@@ -249,13 +258,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto fCrystalHalfWidth = 30 * mm;
     const auto fCrystalHalfLength = 7.5 * cm;
 
-    const auto fCouplerHalfWidth = 35 * mm;
+    const auto fCouplerHalfWidth = 25.5 * mm;
     const auto fCouplerHalfThickness = 0.05 * mm;
 
     const auto fPMTWindowDiameter = fCouplerHalfWidth;
     const auto fPMTWindowHalfThickness = 0.5 * mm;
 
-    const auto fSiPMHalfWidth = fCouplerHalfWidth;
+    const auto fSiPMHalfWidth = 23 * mm;
     const auto fSiPMHalfThickness = 10 * nm;
 
     const auto offsetlength = 0 * cm;
@@ -303,7 +312,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto windowPV = new G4PVPlacement{nullptr, translation2, windowLV, "window", worldLV, false, 0, true};
 
     const auto sipmSV = new G4Tubs("sipm", 0, fSiPMHalfWidth, fSiPMHalfThickness, 0, 2 * pi);
-    const auto sipmLV = new G4LogicalVolume(sipmSV, silicon, "sipm");
+    const auto sipmLV = new G4LogicalVolume(sipmSV, bialkali, "sipm");
     new G4PVPlacement(nullptr, translation3, sipmLV, "sipm", worldLV, false, 0, true);
 
     // Define Surface
