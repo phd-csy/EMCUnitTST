@@ -325,14 +325,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     new G4LogicalBorderSurface("couplerSurface", crystalPV, couplerPV, couplerSurface);
     couplerSurface->SetMaterialPropertiesTable(couplerSurfacePropertiesTable);
 
-    const auto couplerRfSurface = new G4OpticalSurface("couplerRf", unified, polished, dielectric_metal);
-    new G4LogicalBorderSurface("couplerRfSurface", couplerPV, worldPV, couplerRfSurface);
-    couplerRfSurface->SetMaterialPropertiesTable(rfSurfacePropertiesTable);
-
-    const auto windowSurface = new G4OpticalSurface("PMTwindow", unified, polished, dielectric_metal);
-    new G4LogicalBorderSurface("windowSurface", windowPV, worldPV, windowSurface);
-    windowSurface->SetMaterialPropertiesTable(rfSurfacePropertiesTable);
-
     const auto cathodeSurface = new G4OpticalSurface("Cathode", unified, polished, dielectric_metal);
     new G4LogicalSkinSurface("cathodeSkinSurface", sipmLV, cathodeSurface);
     cathodeSurface->SetMaterialPropertiesTable(cathodeSurfacePropertiesTable);
