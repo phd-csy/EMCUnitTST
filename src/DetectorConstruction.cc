@@ -1,5 +1,6 @@
 #include "DetectorConstruction.hh"
 
+#include "CreateMapFromCSV.hh"
 #include "G4AutoDelete.hh"
 #include "G4Box.hh"
 #include "G4Colour.hh"
@@ -125,25 +126,25 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     std::vector<G4double> fEnergyPair = {h_Planck * c_light / fLambda_max,
                                          h_Planck * c_light / fLambda_min};
 
-    //============================================ air ================================================
+    //============================================ Air ================================================
 
-    auto MPT_Air = new G4MaterialPropertiesTable();
-    MPT_Air->AddProperty("RINDEX", fEnergyPair, {1.00, 1.00});
-    galactic->SetMaterialPropertiesTable(MPT_Air);
+    const auto airPropertiesTable = new G4MaterialPropertiesTable();
+    airPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.00, 1.00});
+    galactic->SetMaterialPropertiesTable(airPropertiesTable);
 
-    //============================================ silicone oil =======================================
+    //============================================ Optical Coupler ====================================
 
-    std::vector<G4double> couplerEnergyBin = {8.01532E-07, 1.89386E-06, 1.92915E-06, 2.1093E-06, 2.27541E-06, 2.55633E-06, 2.58828E-06};
-    std::vector<G4double> couplerRefractiveIndex = {1.3912, 1.3992, 1.3997, 1.4015, 1.4034, 1.4071, 1.4076};
+    // std::vector<G4double> couplerEnergyBin = {8.01532E-07, 1.89386E-06, 1.92915E-06, 2.1093E-06, 2.27541E-06, 2.55633E-06, 2.58828E-06};
+    // std::vector<G4double> couplerRefractiveIndex = {1.3912, 1.3992, 1.3997, 1.4015, 1.4034, 1.4071, 1.4076};
 
-    auto siliconeOilPropertiesTable = new G4MaterialPropertiesTable();
-    siliconeOilPropertiesTable->AddProperty("RINDEX", couplerEnergyBin, couplerRefractiveIndex);
-    siliconeOilPropertiesTable->AddProperty("ABSLENGTH", fEnergyPair, {15 * cm, 15 * cm});
+    const auto siliconeOilPropertiesTable = new G4MaterialPropertiesTable();
+    siliconeOilPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.465, 1.465});
+    siliconeOilPropertiesTable->AddProperty("ABSLENGTH", fEnergyPair, {40 * cm, 40 * cm});
     siliconeOil->SetMaterialPropertiesTable(siliconeOilPropertiesTable);
 
     //============================================ Quartz =============================================
 
-    auto windowPropertiesTable = new G4MaterialPropertiesTable();
+    const auto windowPropertiesTable = new G4MaterialPropertiesTable();
     windowPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.54, 1.54});
     glass->SetMaterialPropertiesTable(windowPropertiesTable);
 
@@ -151,7 +152,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     // CsI(Tl)
 
-    auto csiPropertiesTable = new G4MaterialPropertiesTable;
+    const auto csiPropertiesTable = new G4MaterialPropertiesTable();
     auto csiProperties(CreateMapFromCSV<G4double>("data/CsI_properties.csv"));
     csiPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.79, 1.79});
     csiPropertiesTable->AddProperty("GROUPVEL", fEnergyPair, {167.482, 167.482});
@@ -207,14 +208,18 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     // lysoPropertiesTable->AddConstProperty("RESOLUTIONSCALE", lysoProperties["RESOLUTIONSCALE"].front());
     // lyso->SetMaterialPropertiesTable(lysoPropertiesTable);
 
-    auto rfSurfacePropertiesTable = new G4MaterialPropertiesTable();
+    //============================================ Surface ============================================
+
+    const auto rfSurfacePropertiesTable = new G4MaterialPropertiesTable();
     rfSurfacePropertiesTable->AddProperty("REFLECTIVITY", fEnergyPair, {0.985, 0.985});
 
     const auto couplerSurfacePropertiesTable = new G4MaterialPropertiesTable();
     couplerSurfacePropertiesTable->AddProperty("TRANSMITTANCE", fEnergyPair, {1, 1});
 
-    const auto tapeSurfacePropertiesTable = new G4MaterialPropertiesTable();
-    tapeSurfacePropertiesTable->AddProperty("TRANSMITTANCE", fEnergyPair, {0, 0});
+    const auto airPaintSurfacePropertiesTable = new G4MaterialPropertiesTable();
+    airPaintSurfacePropertiesTable->AddProperty("REFLECTIVITY", fEnergyPair, {0., 0.});
+
+    const auto cathodeSurfacePropertiesTable = new G4MaterialPropertiesTable();
 
     std::vector<G4double> pmtWaveLengthBin = {715.759, 704.541, 687.714, 670.887, 654.06, 637.234, 620.807, 606.384,
                                               592.562, 584.019, 577.939, 571.814, 566.671, 562.542, 558.307, 553.099,
@@ -241,7 +246,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     std::transform(pmtQuantumEfficiency.begin(), pmtQuantumEfficiency.end(), cathodeSurfacePropertiesEfficiency.begin(),
                    [](auto n) { return n * perCent; });
 
-    const auto cathodeSurfacePropertiesTable = new G4MaterialPropertiesTable();
     cathodeSurfacePropertiesTable->AddProperty("REFLECTIVITY", fEnergyPair, {0., 0.});
     cathodeSurfacePropertiesTable->AddProperty("EFFICIENCY", cathodeSurfacePropertiesEnergy, cathodeSurfacePropertiesEfficiency);
 
@@ -254,43 +258,42 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto worldLV = new G4LogicalVolume(worldS, galactic, "World");
     const auto worldPV = new G4PVPlacement(nullptr, {}, worldLV, "World", nullptr, false, 0, true);
 
-    const auto fCrystalHalfWidth = 30 * mm;
-    const auto fCrystalHalfLength = 7.5 * cm;
+    const auto fCrystalWidth = 3 * cm;
+    const auto fCrystalLength = 8 * cm;
 
-    const auto fCouplerHalfWidth = 25.5 * mm;
-    const auto fCouplerHalfThickness = 0.05 * mm;
+    const auto fPMTRadius = 19 * mm;
+    // const auto fLargePMTRadius = 40 * mm;
 
-    const auto fPMTWindowDiameter = fCouplerHalfWidth;
-    const auto fPMTWindowHalfThickness = 0.5 * mm;
+    const auto fPMTCathodeRadius = 17 * mm;
+    // const auto fLargePMTCathodeRadius = 36 * mm;
 
-    const auto fSiPMHalfWidth = 23 * mm;
-    const auto fSiPMHalfThickness = 10 * nm;
+    const auto fCouplerThickness = 0.1 * mm;
+    const auto fWindowThickness = 1 * mm;
+    const auto fCathodeThickness = 20 * nm;
 
-    const auto offsetlength = 0 * cm;
+    // const auto offsetlength = 0 * cm;
 
-    const auto translation1 = G4ThreeVector(0., offsetlength, fCrystalHalfLength + fCouplerHalfThickness);
-    const auto translation2 = G4ThreeVector(0., offsetlength, fCrystalHalfLength + fCouplerHalfThickness * 2 + fPMTWindowHalfThickness);
-    const auto translation3 = G4ThreeVector(0., offsetlength, fCrystalHalfLength + fCouplerHalfThickness * 2 + fPMTWindowHalfThickness * 2 + fSiPMHalfThickness);
+    const auto Transform =
+        [&fCrystalLength, crystalTail = G4ThreeVector(0, 0, fCrystalLength / 2)](double transformDistance) {
+            return G4Translate3D{crystalTail + G4ThreeVector(0, 0, transformDistance)};
+        };
 
-    // Construct Volume
+    // const G4int nsect = 5;
+    // std::vector<G4TwoVector> polygon(nsect);
+    // G4double ang = twopi / nsect;
+    // for (int i = 0; i < nsect; ++i) {
+    //     G4double phi = i * ang;
+    //     G4double cosphi = std::cos(phi);
+    //     G4double sinphi = std::sin(phi);
+    //     polygon[i].set(fCrystalHalfWidth * cosphi, fCrystalHalfWidth * sinphi);
+    // }
 
-    const G4int nsect = 5;
-    std::vector<G4TwoVector> polygon(nsect);
-    G4double ang = twopi / nsect;
-    for (G4int i = 0; i < nsect; ++i) {
-        G4double phi = i * ang;
-        G4double cosphi = std::cos(phi);
-        G4double sinphi = std::sin(phi);
-        polygon[i].set(fCrystalHalfWidth * cosphi, fCrystalHalfWidth * sinphi);
-    }
+    // G4TwoVector offsetA(0, 0), offsetB(0, offsetlength);
+    // G4double scaleA = 0.6, scaleB = 1;
 
-    G4TwoVector offsetA(0, 0), offsetB(0, offsetlength);
-    G4double scaleA = 0.6, scaleB = 1;
+    // const auto crystalSV = new G4ExtrudedSolid("Extruded", polygon, fCrystalHalfLength, offsetA, scaleA, offsetB, scaleB);
 
-    const auto crystalSV = new G4ExtrudedSolid("Extruded", polygon, fCrystalHalfLength, offsetA, scaleA, offsetB, scaleB);
-
-    // const auto crystalSV = new G4Box("crystal", fCrystalHalfWidth, fCrystalHalfWidth, fCrystalHalfLength);
-    // const auto crystalSV = new G4Trd("crystal", fCrystalHalfWidth - 20 * mm, fCrystalHalfWidth, fCrystalHalfWidth - 20 * mm, fCrystalHalfWidth, fCrystalHalfLength);
+    const auto crystalSV = new G4Box("crystal", fCrystalWidth / 2, fCrystalWidth / 2, fCrystalLength / 2);
 
     //========================================== CsI(Tl) ============================================
     const auto crystalLV = new G4LogicalVolume{crystalSV, csI, "crystal"};
@@ -299,50 +302,40 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     //========================================== LYSO(Ce) ===========================================
     // const auto crystalLV = new G4LogicalVolume{crystalSV, lyso, "crystal"};
     //===============================================================================================
+    const auto crystalPV = new G4PVPlacement(G4Transform3D{}, crystalLV, "crystal", worldLV, false, 0, true);
 
-    const auto crystalPV = new G4PVPlacement(nullptr, G4ThreeVector(), crystalLV, "crystal", worldLV, false, 0, true);
+    const auto couplerSV = new G4Tubs("coupler", 0, fPMTRadius, fCouplerThickness / 2, 0, 2 * pi);
+    const auto couplerLV = new G4LogicalVolume(couplerSV, siliconeOil, "CrystalCoupler");
+    const auto couplerPV = new G4PVPlacement(Transform(fCouplerThickness / 2),
+                                             couplerLV, "CrystalCoupler", worldLV, false, 0, true);
 
-    const auto couplerSV = new G4Tubs("coupler", 0, fCouplerHalfWidth, fCouplerHalfThickness, 0, 2 * pi);
-    const auto couplerLV = new G4LogicalVolume(couplerSV, siliconeOil, "coupler");
-    const auto couplerPV = new G4PVPlacement(nullptr, translation1, couplerLV, "coupler", worldLV, false, 0, true);
-
-    const auto windowSV = new G4Tubs("window", 0, fPMTWindowDiameter, fPMTWindowHalfThickness, 0, 2 * pi);
+    const auto windowSV = new G4Tubs("window", 0, fPMTRadius, fWindowThickness / 2, 0, 2 * pi);
     const auto windowLV = new G4LogicalVolume(windowSV, glass, "window");
-    const auto windowPV = new G4PVPlacement{nullptr, translation2, windowLV, "window", worldLV, false, 0, true};
+    const auto windowPV = new G4PVPlacement{Transform(fCouplerThickness + fWindowThickness / 2),
+                                            windowLV, "window", worldLV, false, 0, true};
 
-    const auto sipmSV = new G4Tubs("sipm", 0, fSiPMHalfWidth, fSiPMHalfThickness, 0, 2 * pi);
-    const auto sipmLV = new G4LogicalVolume(sipmSV, bialkali, "sipm");
-    new G4PVPlacement(nullptr, translation3, sipmLV, "sipm", worldLV, false, 0, true);
+    const auto sipmSV = new G4Tubs("sipm", 0, fPMTCathodeRadius, fCathodeThickness / 2, 0, 2 * pi);
+    const auto sipmLV = new G4LogicalVolume(sipmSV, silicon, "sipm");
+    new G4PVPlacement(Transform(fCouplerThickness + fWindowThickness + fCathodeThickness / 2),
+                      sipmLV, "sipm", worldLV, false, 0, true);
 
     // Define Surface
 
-    const auto rfSurface = new G4OpticalSurface("reflector", unified, ground, dielectric_metal);
-    new G4LogicalBorderSurface("rfSurface", crystalPV, worldPV, rfSurface);
+    const auto rfSurface = new G4OpticalSurface("reflector", unified, polished, dielectric_metal);
     rfSurface->SetMaterialPropertiesTable(rfSurfacePropertiesTable);
+    new G4LogicalBorderSurface("rfSurface", crystalPV, worldPV, rfSurface);
 
     const auto couplerSurface = new G4OpticalSurface("coupler", unified, polished, dielectric_dielectric);
-    new G4LogicalBorderSurface("couplerSurface", crystalPV, couplerPV, couplerSurface);
     couplerSurface->SetMaterialPropertiesTable(couplerSurfacePropertiesTable);
+    new G4LogicalBorderSurface("couplerSurface", crystalPV, couplerPV, couplerSurface);
+
+    const auto airPaintSurface = new G4OpticalSurface("Paint", unified, polished, dielectric_dielectric);
+    airPaintSurface->SetMaterialPropertiesTable(airPaintSurfacePropertiesTable);
+    new G4LogicalBorderSurface("AirPaintSurface", worldPV, crystalPV, airPaintSurface);
 
     const auto cathodeSurface = new G4OpticalSurface("Cathode", unified, polished, dielectric_metal);
-    new G4LogicalSkinSurface("cathodeSkinSurface", sipmLV, cathodeSurface);
     cathodeSurface->SetMaterialPropertiesTable(cathodeSurfacePropertiesTable);
-
-    const auto tapeSurface = new G4OpticalSurface("tape", unified, polished, dielectric_metal);
-    new G4LogicalBorderSurface("protectiveSurface", worldPV, crystalPV, tapeSurface);
-    tapeSurface->SetMaterialPropertiesTable(tapeSurfacePropertiesTable);
-
-    // auto cathodeSurfacePropertiesTable = new G4MaterialPropertiesTable();
-    // auto cathodeSurfaceProperties(CreateMapFromCSV<G4double>("data/PMT_properties.csv"));
-
-    // std::vector<G4double> cathodeSurfacePropertiesEnergy(cathodeSurfaceProperties["wavelength"].size());
-    // std::vector<G4double> cathodeSurfacePropertiesEfficiency(cathodeSurfaceProperties["EFFICIENCY"].size());
-
-    // std::transform(cathodeSurfaceProperties["wavelength"].begin(), cathodeSurfaceProperties["wavelength"].end(), cathodeSurfacePropertiesEnergy.begin(),
-    //                [](auto val) { return h_Planck * c_light / (val * nm / mm); });
-
-    // std::transform(cathodeSurfaceProperties["EFFICIENCY"].begin(), cathodeSurfaceProperties["EFFICIENCY"].end(), cathodeSurfacePropertiesEfficiency.begin(),
-    //                [](auto n) { return n * perCent; });
+    new G4LogicalSkinSurface("cathodeSkinSurface", sipmLV, cathodeSurface);
 
     // auto cathodeSurface = new G4OpticalSurface("Cathode", glisur, polished, dielectric_metal);
     // new G4LogicalSkinSurface("sipmSkinSurface", sipmLV, cathodeSurface);

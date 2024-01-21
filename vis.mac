@@ -87,7 +87,7 @@
 
 /gps/particle gamma
 /gps/ene/mono 0.511 MeV
-/gps/pos/centre 0. 0. -20. cm
+/gps/pos/centre 0. 0. -5. cm
 /gps/direction 0 0 1
 
-#/run/beamOn 1
+/run/beamOn 1
