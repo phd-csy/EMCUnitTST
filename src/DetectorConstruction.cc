@@ -329,26 +329,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     couplerSurface->SetMaterialPropertiesTable(couplerSurfacePropertiesTable);
     new G4LogicalBorderSurface("couplerSurface", crystalPV, couplerPV, couplerSurface);
 
-    const auto airPaintSurface = new G4OpticalSurface("Paint", unified, polished, dielectric_dielectric);
+    const auto airPaintSurface = new G4OpticalSurface("Paint", unified, polished, dielectric_metal);
     airPaintSurface->SetMaterialPropertiesTable(airPaintSurfacePropertiesTable);
     new G4LogicalBorderSurface("AirPaintSurface", worldPV, crystalPV, airPaintSurface);
 
     const auto cathodeSurface = new G4OpticalSurface("Cathode", unified, polished, dielectric_metal);
     cathodeSurface->SetMaterialPropertiesTable(cathodeSurfacePropertiesTable);
     new G4LogicalSkinSurface("cathodeSkinSurface", sipmLV, cathodeSurface);
-
-    // auto cathodeSurface = new G4OpticalSurface("Cathode", glisur, polished, dielectric_metal);
-    // new G4LogicalSkinSurface("sipmSkinSurface", sipmLV, cathodeSurface);
-    // cathodeSurfacePropertiesTable->AddProperty(
-    //     "REFLECTIVITY",
-    //     cathodeSurfacePropertiesEnergy,
-    //     cathodeSurfaceProperties["REFLECTIVITY"]);
-    // cathodeSurfacePropertiesTable->AddProperty(
-    //     "EFFICIENCY",
-    //     cathodeSurfacePropertiesEnergy,
-    //     cathodeSurfacePropertiesEfficiency);
-    // cathodeSurface->SetMaterialPropertiesTable(cathodeSurfacePropertiesTable);
-    // cathodeSurfacePropertiesTable->DumpTable();
 
     ++cellNumber;
 
