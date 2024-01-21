@@ -126,8 +126,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     // Construct Material Optical Properties Tables
     //////////////////////////////////////////////////
 
-    const auto pmmaPropertiesTable = new G4MaterialPropertiesTable();
-    pmmaPropertiesTable->AddProperty("RINDEX", "PMMA");
+    // const auto pmmaPropertiesTable = new G4MaterialPropertiesTable();
+    // pmmaPropertiesTable->AddProperty("RINDEX", "PMMA");
 
     constexpr auto fLambda_min = 200 * nm;
     constexpr auto fLambda_max = 700 * nm;
