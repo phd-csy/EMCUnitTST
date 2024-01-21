@@ -147,7 +147,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     const auto siliconeOilPropertiesTable = new G4MaterialPropertiesTable();
     siliconeOilPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.465, 1.465});
-    siliconeOilPropertiesTable->AddProperty("ABSLENGTH", fEnergyPair, {15 * cm, 15 * cm});
+    siliconeOilPropertiesTable->AddProperty("ABSLENGTH", fEnergyPair, {40 * cm, 40 * cm});
     siliconeOil->SetMaterialPropertiesTable(siliconeOilPropertiesTable);
 
     //============================================ Quartz =============================================
