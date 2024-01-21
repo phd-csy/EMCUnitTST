@@ -7,7 +7,7 @@
 
 /gps/particle gamma
 /gps/ene/mono 0.511 MeV
-/gps/pos/centre 0. 0. -10. cm
+/gps/pos/centre 0. 0. -5. cm
 /gps/direction 0 0 1
 
 /run/printProgress 1000
