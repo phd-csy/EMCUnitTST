@@ -435,7 +435,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     couplerSurface->SetMaterialPropertiesTable(couplerSurfacePropertiesTable);
     new G4LogicalBorderSurface("couplerSurface", crystalPV, headCouplerPV, couplerSurface);
 
-    const auto airPaintSurface = new G4OpticalSurface("Paint", unified, polished, dielectric_dielectric);
+    const auto airPaintSurface = new G4OpticalSurface("Paint", unified, polished, dielectric_metal);
     airPaintSurface->SetMaterialPropertiesTable(airPaintSurfacePropertiesTable);
     new G4LogicalBorderSurface("AirPaintSurface", worldPV, crystalPV, airPaintSurface);
     new G4LogicalBorderSurface("AirPaintSurface", worldPV, guidePV, airPaintSurface);
