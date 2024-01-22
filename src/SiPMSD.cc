@@ -20,19 +20,20 @@ void SiPMSD::Initialize(G4HCofThisEvent* hcOfThisEvent) {
 
 G4bool SiPMSD::ProcessHits(G4Step* step, G4TouchableHistory*) {
     auto particleDefinition = step->GetTrack()->GetDefinition();
-    if (particleDefinition != G4OpticalPhoton::OpticalPhotonDefinition())
-        return false;
+    if (particleDefinition == G4OpticalPhoton::Definition()) {
 
-    step->GetTrack()->SetTrackStatus(fStopAndKill);
+        step->GetTrack()->SetTrackStatus(fStopAndKill);
 
-    auto hit = new SiPMHit;
-    auto globalTime = step->GetPostStepPoint()->GetGlobalTime();
-    auto copyNo = step->GetTrack()->GetVolume()->GetCopyNo();
-    hit->SetGlobalTime(globalTime);
-    hit->SetCopyNo(copyNo);
-    hc->insert(hit);
+        auto hit = new SiPMHit;
+        auto globalTime = step->GetPostStepPoint()->GetGlobalTime();
+        auto copyNo = step->GetTrack()->GetVolume()->GetCopyNo();
+        hit->SetGlobalTime(globalTime);
+        hit->SetCopyNo(copyNo);
+        hc->insert(hit);
 
-    return true;
+        return true;
+    }
+    return false;
 }
 
 void SiPMSD::EndOfEvent(G4HCofThisEvent*) {}

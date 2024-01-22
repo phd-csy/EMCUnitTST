@@ -333,7 +333,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     // Define Surface
 
-    const auto rfSurface = new G4OpticalSurface("reflector", unified, polished, dielectric_metal);
+    const auto rfSurface = new G4OpticalSurface("reflector", unified, polished, dielectric_dielectric);
     rfSurface->SetMaterialPropertiesTable(rfSurfacePropertiesTable);
     new G4LogicalBorderSurface("rfSurface", crystalPV, worldPV, rfSurface);
 
