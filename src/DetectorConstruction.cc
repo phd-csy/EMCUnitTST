@@ -73,6 +73,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto carbonElement = nistManager->FindOrBuildElement("C");
     const auto hydrogenElement = nistManager->FindOrBuildElement("H");
     const auto oxygenElement = nistManager->FindOrBuildElement("O");
+    const auto nitrogenElement = nistManager->FindOrBuildElement("N");
     const auto siliconElement = nistManager->FindOrBuildElement("Si");
     const auto cesiumElement = nistManager->FindOrBuildElement("Cs");
     const auto iodideElement = nistManager->FindOrBuildElement("I");
@@ -84,6 +85,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     const auto potassiumElement = nistManager->FindOrBuildElement("K");
     const auto antimonyElement = nistManager->FindOrBuildElement("Sb");
+    const auto bismuthElement = nistManager->FindOrBuildElement("Bi");
 
     const auto siliconeOil = new G4Material("silicone_oil", 0.97 * g / cm3, 4, kStateLiquid);
     siliconeOil->AddElement(carbonElement, 2);
@@ -105,9 +107,14 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     bialkali->AddElement(cesiumElement, 1);
     bialkali->AddElement(antimonyElement, 1);
 
-    const auto ej200 = new G4Material("EJ200", 1.023 * g / cm3, 2, kStateSolid);
-    ej200->AddElement(hydrogenElement, 0.084744);
-    ej200->AddElement(carbonElement, 0.915256);
+    // const auto plastic = new G4Material("EJ200", 1.023 * g / cm3, 2, kStateSolid);
+    // plastic->AddElement(hydrogenElement, 0.084744);
+    // plastic->AddElement(carbonElement, 0.915256);
+
+    const auto plastic = new G4Material("Doped", 1.03 * g / cm3, 3, kStateSolid);
+    plastic->AddElement(carbonElement, 0.915 * 0.8);
+    plastic->AddElement(hydrogenElement, 0.085 * 0.8);
+    plastic->AddElement(bismuthElement, 0.2);
 
     // const auto labr = new G4Material("LaBr3", 5.08 * g / cm3, 3, kStateSolid);
     // labr->AddElement(bromideElement, 0.631308);
@@ -240,14 +247,14 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     std::transform(ej200WaveLengthBin.begin(), ej200WaveLengthBin.end(), ej200EnergyBin.begin(),
                    [](auto val) { return h_Planck * c_light / (val * nm / mm); });
 
-    const auto ej200PropertiesTable = new G4MaterialPropertiesTable();
-    ej200PropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.58, 1.58});
-    ej200PropertiesTable->AddProperty("ABSLENGTH", fEnergyPair, {380 * cm, 380 * cm});
-    ej200PropertiesTable->AddProperty("SCINTILLATIONCOMPONENT1", ej200EnergyBin, ej200ScintillationComponent1);
-    ej200PropertiesTable->AddConstProperty("SCINTILLATIONYIELD", 10000. / MeV);
-    ej200PropertiesTable->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 2.5 * ns);
-    ej200PropertiesTable->AddConstProperty("RESOLUTIONSCALE", 1.0);
-    ej200->SetMaterialPropertiesTable(ej200PropertiesTable);
+    const auto plasticPropertiesTable = new G4MaterialPropertiesTable();
+    plasticPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.58, 1.58});
+    plasticPropertiesTable->AddProperty("ABSLENGTH", fEnergyPair, {380 * cm, 380 * cm});
+    plasticPropertiesTable->AddProperty("SCINTILLATIONCOMPONENT1", ej200EnergyBin, ej200ScintillationComponent1);
+    plasticPropertiesTable->AddConstProperty("SCINTILLATIONYIELD", 20000. / MeV);
+    plasticPropertiesTable->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 2.5 * ns);
+    plasticPropertiesTable->AddConstProperty("RESOLUTIONSCALE", 1.0);
+    plastic->SetMaterialPropertiesTable(plasticPropertiesTable);
 
     //============================================ Surface ============================================
 
@@ -355,7 +362,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     //========================================== LYSO(Ce) ===========================================
     // const auto crystalLV = new G4LogicalVolume{crystalSV, lyso, "crystal"};
     //===============================================================================================
-    const auto crystalLV = new G4LogicalVolume{crystalSV, ej200, "crystal"};
+    const auto crystalLV = new G4LogicalVolume{crystalSV, plastic, "crystal"};
 
     const auto crystalPV = new G4PVPlacement(G4Transform3D{}, crystalLV, "crystal", worldLV, false, 0, true);
 
