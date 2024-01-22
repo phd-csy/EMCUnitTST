@@ -105,6 +105,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     bialkali->AddElement(cesiumElement, 1);
     bialkali->AddElement(antimonyElement, 1);
 
+    const auto ej200 = new G4Material("EJ200", 1.023 * g / cm3, 2, kStateSolid);
+    ej200->AddElement(hydrogenElement, 0.084744);
+    ej200->AddElement(carbonElement, 0.915256);
+
     // const auto labr = new G4Material("LaBr3", 5.08 * g / cm3, 3, kStateSolid);
     // labr->AddElement(bromideElement, 0.631308);
     // labr->AddElement(cesiumElement, 0.036582);
@@ -155,7 +159,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto csiPropertiesTable = new G4MaterialPropertiesTable();
     auto csiProperties(CreateMapFromCSV<G4double>("data/CsI_properties.csv"));
     csiPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.79, 1.79});
-    csiPropertiesTable->AddProperty("GROUPVEL", fEnergyPair, {167.482, 167.482});
     csiPropertiesTable->AddProperty("ABSLENGTH", fEnergyPair, {370 * mm, 370 * mm});
     csiPropertiesTable->AddProperty("SCINTILLATIONCOMPONENT1",
                                     csiProperties["energy"],
@@ -207,6 +210,44 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     // lysoPropertiesTable->AddConstProperty("SCINTILLATIONTIMECONSTANT1", lysoProperties["SCINTILLATIONTIMECONSTANT1"].front());
     // lysoPropertiesTable->AddConstProperty("RESOLUTIONSCALE", lysoProperties["RESOLUTIONSCALE"].front());
     // lyso->SetMaterialPropertiesTable(lysoPropertiesTable);
+
+    std::vector<G4double> ej200WaveLengthBin = {499.837, 497.667, 495.162, 492.656, 490.15,
+                                                487.645, 485.139, 482.633, 480.128, 477.622,
+                                                475.116, 472.611, 470.105, 467.6, 465.094,
+                                                462.588, 460.083, 457.577, 455.071, 452.566,
+                                                450.06, 447.554, 445.205, 443.013, 440.977,
+                                                439.254, 437.532, 435.652, 433.617, 431.268,
+                                                429.2, 426.569, 424.064, 422.644, 421.871,
+                                                420.587, 419.71, 419.052, 418.395, 417.518,
+                                                416.86, 416.202, 415.294, 414.386, 413.697,
+                                                412.788, 411.849, 410.752, 409.813, 408.717,
+                                                407.464, 406.211, 404.802, 402.979, 400.26,
+                                                397.754};
+    std::vector<G4double> ej200EnergyBin(ej200WaveLengthBin.size());
+    std::vector<G4double> ej200ScintillationComponent1 = {0.06, 0.063, 0.074, 0.086, 0.099,
+                                                          0.112, 0.13, 0.15, 0.173, 0.198,
+                                                          0.228, 0.263, 0.306, 0.348, 0.382,
+                                                          0.41, 0.431, 0.455, 0.483, 0.514,
+                                                          0.55, 0.592, 0.637, 0.685, 0.731,
+                                                          0.773, 0.816, 0.86, 0.9, 0.939,
+                                                          0.979, 0.998, 0.997, 0.979, 0.951,
+                                                          0.898, 0.846, 0.8, 0.754, 0.698,
+                                                          0.651, 0.602, 0.545, 0.488, 0.438,
+                                                          0.385, 0.339, 0.292, 0.25, 0.207,
+                                                          0.161, 0.117, 0.072, 0.026, 0.011,
+                                                          0.003};
+
+    std::transform(ej200WaveLengthBin.begin(), ej200WaveLengthBin.end(), ej200EnergyBin.begin(),
+                   [](auto val) { return h_Planck * c_light / (val * nm / mm); });
+
+    const auto ej200PropertiesTable = new G4MaterialPropertiesTable();
+    ej200PropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.58, 1.58});
+    ej200PropertiesTable->AddProperty("ABSLENGTH", fEnergyPair, {380 * cm, 380 * cm});
+    ej200PropertiesTable->AddProperty("SCINTILLATIONCOMPONENT1", ej200EnergyBin, ej200ScintillationComponent1);
+    ej200PropertiesTable->AddConstProperty("SCINTILLATIONYIELD", 10000. / MeV);
+    ej200PropertiesTable->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 2.5 * ns);
+    ej200PropertiesTable->AddConstProperty("RESOLUTIONSCALE", 1.0);
+    ej200->SetMaterialPropertiesTable(ej200PropertiesTable);
 
     //============================================ Surface ============================================
 
@@ -308,12 +349,14 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto crystalSV = new G4Box("crystal", fCrystalWidth / 2, fCrystalWidth / 2, fCrystalLength / 2);
 
     //========================================== CsI(Tl) ============================================
-    const auto crystalLV = new G4LogicalVolume{crystalSV, csI, "crystal"};
+    // const auto crystalLV = new G4LogicalVolume{crystalSV, csI, "crystal"};
     //========================================== LaBr3(Ce) ==========================================
     // const auto crystalLV = new G4LogicalVolume{crystalSV, labr, "crystal"};
     //========================================== LYSO(Ce) ===========================================
     // const auto crystalLV = new G4LogicalVolume{crystalSV, lyso, "crystal"};
     //===============================================================================================
+    const auto crystalLV = new G4LogicalVolume{crystalSV, ej200, "crystal"};
+
     const auto crystalPV = new G4PVPlacement(G4Transform3D{}, crystalLV, "crystal", worldLV, false, 0, true);
 
     const auto couplerSV = new G4Tubs("coupler", 0, fPMTRadius, fCouplerThickness / 2, 0, 2 * pi);
