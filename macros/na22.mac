@@ -5,7 +5,7 @@
 /run/initialize
 
 /gps/particle ion
-/gps/ion 55 137
+/gps/ion 11 22
 /gps/ene/mono 0.
 /gps/pos/centre 0. 0. -5. cm
 
