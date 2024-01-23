@@ -69,6 +69,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto aluminum = nistManager->FindOrBuildMaterial("G4_Al");
     const auto silicon = nistManager->FindOrBuildMaterial("G4_Si");
     const auto pvc = nistManager->FindOrBuildMaterial("G4_POLYVINYL_CHLORIDE");
+    const auto bgo = nistManager->FindOrBuildMaterial("G4_BGO");
 
     const auto carbonElement = nistManager->FindOrBuildElement("C");
     const auto hydrogenElement = nistManager->FindOrBuildElement("H");
@@ -86,6 +87,11 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto potassiumElement = nistManager->FindOrBuildElement("K");
     const auto antimonyElement = nistManager->FindOrBuildElement("Sb");
     const auto bismuthElement = nistManager->FindOrBuildElement("Bi");
+
+    const auto pet = new G4Material("PET", 1.38 * g / cm3, 3, kStateSolid);
+    pet->AddElement(hydrogenElement, 0.041962);
+    pet->AddElement(carbonElement, 0.625008);
+    pet->AddElement(oxygenElement, 0.333030);
 
     const auto siliconeOil = new G4Material("silicone_oil", 0.97 * g / cm3, 4, kStateLiquid);
     siliconeOil->AddElement(carbonElement, 2);
@@ -218,6 +224,25 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     // lysoPropertiesTable->AddConstProperty("RESOLUTIONSCALE", lysoProperties["RESOLUTIONSCALE"].front());
     // lyso->SetMaterialPropertiesTable(lysoPropertiesTable);
 
+    // BGO
+
+    std::vector<G4double> bgoWaveLengthBin = {635.394, 629.507, 621.889, 614.27, 606.652, 599.033, 591.414, 583.796, 576.177, 568.905, 562.325, 556.092, 550.205, 544.664, 539.124, 533.929, 529.081, 523.886, 517.999, 511.073, 503.455, 495.836, 488.218, 480.599, 472.981, 465.362, 458.436, 452.895, 448.394, 444.584, 440.775, 436.619, 432.81, 429.347, 425.884, 422.768, 419.651, 416.188, 412.725, 409.262, 405.799, 401.99, 397.488, 392.64, 387.445, 381.558, 376.284};
+    std::vector<G4double> bgoEnergyBin(bgoWaveLengthBin.size());
+    std::vector<G4double> bgoScintillationComponent1 = {0.107, 0.127, 0.156, 0.186, 0.218, 0.253, 0.289, 0.325, 0.363, 0.402, 0.442, 0.481, 0.521, 0.56, 0.6, 0.641, 0.68, 0.721, 0.758, 0.798, 0.839, 0.875, 0.899, 0.909, 0.9, 0.875, 0.839, 0.8, 0.76, 0.721, 0.68, 0.635, 0.592, 0.552, 0.509, 0.469, 0.428, 0.383, 0.339, 0.296, 0.257, 0.217, 0.176, 0.136, 0.099, 0.059, 0.026};
+    std::transform(bgoWaveLengthBin.begin(), bgoWaveLengthBin.end(), bgoEnergyBin.begin(),
+                   [](auto val) { return h_Planck * c_light / (val * nm / mm); });
+
+    const auto bgoPropertiesTable = new G4MaterialPropertiesTable();
+    bgoPropertiesTable->AddProperty("RINDEX", fEnergyPair, {2.15, 2.15});
+    bgoPropertiesTable->AddProperty("ABSLENGTH", fEnergyPair, {40 * cm, 40 * cm});
+    bgoPropertiesTable->AddProperty("SCINTILLATIONCOMPONENT1", bgoEnergyBin, bgoScintillationComponent1);
+    bgoPropertiesTable->AddConstProperty("SCINTILLATIONYIELD", 10000. / MeV);
+    bgoPropertiesTable->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 300 * ns);
+    bgoPropertiesTable->AddConstProperty("RESOLUTIONSCALE", 1.0);
+    bgo->SetMaterialPropertiesTable(bgoPropertiesTable);
+
+    // Plastic Scintillators
+
     std::vector<G4double> ej200WaveLengthBin = {499.837, 497.667, 495.162, 492.656, 490.15,
                                                 487.645, 485.139, 482.633, 480.128, 477.622,
                                                 475.116, 472.611, 470.105, 467.6, 465.094,
@@ -249,10 +274,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     const auto plasticPropertiesTable = new G4MaterialPropertiesTable();
     plasticPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.58, 1.58});
-    plasticPropertiesTable->AddProperty("ABSLENGTH", fEnergyPair, {380 * cm, 380 * cm});
+    plasticPropertiesTable->AddProperty("ABSLENGTH", fEnergyPair, {40 * cm, 40 * cm});
     plasticPropertiesTable->AddProperty("SCINTILLATIONCOMPONENT1", ej200EnergyBin, ej200ScintillationComponent1);
     plasticPropertiesTable->AddConstProperty("SCINTILLATIONYIELD", 20000. / MeV);
-    plasticPropertiesTable->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 2.5 * ns);
+    plasticPropertiesTable->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 3 * ns);
     plasticPropertiesTable->AddConstProperty("RESOLUTIONSCALE", 1.0);
     plastic->SetMaterialPropertiesTable(plasticPropertiesTable);
 
@@ -362,7 +387,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     //========================================== LYSO(Ce) ===========================================
     // const auto crystalLV = new G4LogicalVolume{crystalSV, lyso, "crystal"};
     //===============================================================================================
-    const auto crystalLV = new G4LogicalVolume{crystalSV, plastic, "crystal"};
+    const auto crystalLV = new G4LogicalVolume{crystalSV, bgo, "crystal"};
 
     const auto crystalPV = new G4PVPlacement(G4Transform3D{}, crystalLV, "crystal", worldLV, false, 0, true);
 
@@ -383,7 +408,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     // Define Surface
 
-    const auto rfSurface = new G4OpticalSurface("reflector", unified, polished, dielectric_dielectric);
+    // const auto rfSurface = new G4OpticalSurface("reflector", LUT, polishedvm2000glue, dielectric_LUT);
+    const auto rfSurface = new G4OpticalSurface("reflector", unified, polished, dielectric_metal);
     rfSurface->SetMaterialPropertiesTable(rfSurfacePropertiesTable);
     new G4LogicalBorderSurface("rfSurface", crystalPV, worldPV, rfSurface);
 
