@@ -335,11 +335,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     const auto worldSize = 2 * m;
     const auto worldS = new G4Box("world", 0.5 * worldSize, 0.5 * worldSize, 0.5 * worldSize);
-    const auto worldLV = new G4LogicalVolume(worldS, galactic, "World");
+    const auto worldLV = new G4LogicalVolume(worldS, air, "World");
     const auto worldPV = new G4PVPlacement(nullptr, {}, worldLV, "World", nullptr, false, 0, true);
 
     const auto fCrystalWidth = 3 * cm;
     const auto fCrystalLength = 8 * cm;
+
+    const auto fReflectorThickness = 0.5 * mm;
 
     const auto fPMTRadius = 19 * mm;
     // const auto fLargePMTRadius = 40 * mm;
@@ -374,7 +376,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     // const auto crystalSV = new G4ExtrudedSolid("Extruded", polygon, fCrystalHalfLength, offsetA, scaleA, offsetB, scaleB);
 
     const auto crystalSV = new G4Box("crystal", fCrystalWidth / 2, fCrystalWidth / 2, fCrystalLength / 2);
-
     //========================================== CsI(Tl) ============================================
     // const auto crystalLV = new G4LogicalVolume{crystalSV, csI, "crystal"};
     //========================================== LaBr3(Ce) ==========================================
@@ -383,8 +384,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     // const auto crystalLV = new G4LogicalVolume{crystalSV, lyso, "crystal"};
     //===============================================================================================
     const auto crystalLV = new G4LogicalVolume{crystalSV, bgo, "crystal"};
-
     const auto crystalPV = new G4PVPlacement(G4Transform3D{}, crystalLV, "crystal", worldLV, false, 0, true);
+
+    const auto reflectorSV = new G4Box("reflector", fCrystalWidth / 2 + fReflectorThickness, fCrystalWidth / 2 + fReflectorThickness, fCrystalLength / 2 + fReflectorThickness);
+    const auto cuttedReflector = new G4SubtractionSolid("reflector", reflectorSV, crystalSV, G4Translate3D(0, 0, fReflectorThickness));
+    const auto reflectorLV = new G4LogicalVolume{cuttedReflector, pet, "reflector"};
+    const auto reflectorPV = new G4PVPlacement{G4Translate3D(0, 0, -fReflectorThickness), reflectorLV, "reflector", worldLV, false, 0, true};
 
     const auto couplerSV = new G4Tubs("coupler", 0, fPMTRadius, fCouplerThickness / 2, 0, 2 * pi);
     const auto couplerLV = new G4LogicalVolume(couplerSV, siliconeOil, "CrystalCoupler");
@@ -406,7 +411,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     // const auto rfSurface = new G4OpticalSurface("reflector", LUT, polishedvm2000glue, dielectric_LUT);
     const auto rfSurface = new G4OpticalSurface("reflector", unified, polished, dielectric_metal);
     rfSurface->SetMaterialPropertiesTable(rfSurfacePropertiesTable);
-    new G4LogicalBorderSurface("rfSurface", crystalPV, worldPV, rfSurface);
+    new G4LogicalBorderSurface("rfSurface", crystalPV, reflectorPV, rfSurface);
 
     const auto couplerSurface = new G4OpticalSurface("coupler", unified, polished, dielectric_dielectric);
     couplerSurface->SetMaterialPropertiesTable(couplerSurfacePropertiesTable);
@@ -414,7 +419,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     const auto airPaintSurface = new G4OpticalSurface("Paint", unified, polished, dielectric_metal);
     airPaintSurface->SetMaterialPropertiesTable(airPaintSurfacePropertiesTable);
-    new G4LogicalBorderSurface("AirPaintSurface", worldPV, crystalPV, airPaintSurface);
+    new G4LogicalBorderSurface("AirPaintSurface", reflectorPV, crystalPV, airPaintSurface);
 
     const auto cathodeSurface = new G4OpticalSurface("Cathode", unified, polished, dielectric_metal);
     cathodeSurface->SetMaterialPropertiesTable(cathodeSurfacePropertiesTable);
