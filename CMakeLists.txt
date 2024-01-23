@@ -15,9 +15,6 @@ if(WITH_GEANT4_UIVIS)
 else()
   find_package(Geant4 REQUIRED)
 endif()
-find_package(pmp REQUIRED)
-find_package(OpenMP REQUIRED)
-find_package(Eigen3 REQUIRED)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -40,8 +37,8 @@ file(COPY ${PROJECT_SOURCE_DIR}/data macros DESTINATION ${PROJECT_BINARY_DIR})
 # Add the executable, and link it to the Geant4 libraries
 #
 add_executable(demo demo.cc ${sources} ${headers})
-target_link_libraries(demo ${Geant4_LIBRARIES} pmp Eigen3::Eigen)
-target_compile_definitions(demo PRIVATE PMP_SCALAR_TYPE_64)
+target_link_libraries(demo ${Geant4_LIBRARIES})
+target_compile_definitions(demo PRIVATE)
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
