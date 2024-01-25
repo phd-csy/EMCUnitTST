@@ -1,0 +1,15 @@
+/control/verbose 0
+/run/verbose 0
+/event/verbose 0
+/tracking/verbose 0
+/run/initialize
+
+/process/had/rdm/thresholdForVeryLongDecayTime 1.0e+60 year
+#/process/had/rdm/noVolumes
+
+/gps/particle ion
+/gps/ion 92 238
+/gps/pos/centre 0. 0. -5. cm
+
+/run/printProgress 10000
+/run/beamOn 1000000
