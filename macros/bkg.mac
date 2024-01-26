@@ -4,12 +4,23 @@
 /tracking/verbose 0
 /run/initialize
 
-/process/had/rdm/thresholdForVeryLongDecayTime 1.0e+60 year
+/process/had/rdm/thresholdForVeryLongDecayTime 1.0e+5 year
 #/process/had/rdm/noVolumes
 
+/gps/source/intensity 0.0124
 /gps/particle ion
 /gps/ion 92 238
 /gps/pos/centre 0. 0. -5. cm
 
+/gps/source/add 0.01215
+/gps/particle ion
+/gps/ion 90 232
+/gps/pos/centre 0. 0. -5. cm
+
+/gps/source/add 0.1355
+/gps/particle ion
+/gps/ion 19 40
+/gps/pos/centre 0. 0. -5. cm
+
 /run/printProgress 10000
-/run/beamOn 1000000
+/run/beamOn 100000
