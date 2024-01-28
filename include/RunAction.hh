@@ -11,7 +11,7 @@ class G4Timer;
 class RunAction : public G4UserRunAction {
 public:
     RunAction();
-    ~RunAction() override;
+    ~RunAction() override = default;
 
     void BeginOfRunAction(const G4Run* run) override;
     void EndOfRunAction(const G4Run* run) override;
