@@ -9,5 +9,7 @@
 /gps/ene/mono 0.
 /gps/pos/centre 0. 0. -5. cm
 
+/analysis/setFileName eu152
+
 /run/printProgress 10000
 /run/beamOn 1000000
