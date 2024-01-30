@@ -65,6 +65,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto silicon = nistManager->FindOrBuildMaterial("G4_Si");
     const auto pvc = nistManager->FindOrBuildMaterial("G4_POLYVINYL_CHLORIDE");
     const auto bgo = nistManager->FindOrBuildMaterial("G4_BGO");
+    const auto glass = nistManager->FindOrBuildMaterial("G4_GLASS_PLATE");
 
     const auto carbonElement = nistManager->FindOrBuildElement("C");
     const auto hydrogenElement = nistManager->FindOrBuildElement("H");
@@ -93,10 +94,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     siliconeOil->AddElement(hydrogenElement, 6);
     siliconeOil->AddElement(oxygenElement, 1);
     siliconeOil->AddElement(siliconElement, 1);
-
-    const auto glass = new G4Material("Fused Silica", 2.64 * g / cm3, 2, kStateSolid);
-    glass->AddElement(oxygenElement, 0.532570);
-    glass->AddElement(siliconElement, 0.467430);
 
     const auto csI = new G4Material("CsI", 4.51 * g / cm3, 3, kStateSolid);
     csI->AddElement(cesiumElement, 0.507556);
@@ -157,7 +154,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     //============================================ Quartz =============================================
 
     const auto windowPropertiesTable = new G4MaterialPropertiesTable();
-    windowPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.54, 1.54});
+    windowPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.49, 1.49});
     glass->SetMaterialPropertiesTable(windowPropertiesTable);
 
     //============================================ Crystal ============================================
