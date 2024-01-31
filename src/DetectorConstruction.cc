@@ -59,7 +59,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     const auto nistManager = G4NistManager::Instance();
 
-    const auto galactic = new G4Material("galactic", 1, 1.008 * g / mole, 1.e-25 * g / cm3, kStateGas, 2.73 * kelvin, 3.e-18 * pascal);
     const auto air = nistManager->BuildMaterialWithNewDensity("Vacuum", "G4_AIR", 1e-12 * g / cm3);
     const auto aluminum = nistManager->FindOrBuildMaterial("G4_Al");
     const auto silicon = nistManager->FindOrBuildMaterial("G4_Si");
@@ -139,7 +138,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     const auto airPropertiesTable = new G4MaterialPropertiesTable();
     airPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.00, 1.00});
-    galactic->SetMaterialPropertiesTable(airPropertiesTable);
+    air->SetMaterialPropertiesTable(airPropertiesTable);
 
     //============================================ Optical Coupler ====================================
 
@@ -151,7 +150,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     siliconeOilPropertiesTable->AddProperty("ABSLENGTH", fEnergyPair, {40 * cm, 40 * cm});
     siliconeOil->SetMaterialPropertiesTable(siliconeOilPropertiesTable);
 
-    //============================================ Quartz =============================================
+    //============================================ Optical Window =====================================
 
     const auto windowPropertiesTable = new G4MaterialPropertiesTable();
     windowPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.49, 1.49});
@@ -336,7 +335,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto worldPV = new G4PVPlacement(nullptr, {}, worldLV, "World", nullptr, false, 0, true);
 
     const auto fCrystalWidth = 3 * cm;
-    const auto fCrystalLength = 15 * cm;
     // const auto fCrystalLength = 8 * cm;
 
     const auto fReflectorThickness = 0.5 * mm;
@@ -355,8 +353,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     // const auto nsect = 5;
     // const auto fPolygonCrystalWidth = 37 * mm;
 
-    const auto nsect = 6;
-    const auto fPolygonCrystalWidth = 33 * mm;
+    const auto nsect = 5;
+    const auto fCrystalLength = 146.73 * mm;
+    const auto fPolygonCrystalWidth = 20.522 * mm;
 
     std::vector<G4TwoVector> polygon(nsect);
     G4double ang = twopi / nsect;
@@ -364,14 +363,16 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
         G4double phi = i * ang;
         G4double cosphi = std::cos(phi);
         G4double sinphi = std::sin(phi);
-        polygon[i].set(fPolygonCrystalWidth * 0.5 * cosphi, fPolygonCrystalWidth * 0.5 * sinphi);
+        polygon[i].set(fPolygonCrystalWidth * cosphi, fPolygonCrystalWidth * sinphi);
     }
 
     G4TwoVector offsetA(0, 0), offsetB(0, offsetlength);
-    G4double scaleA = 1, scaleB = 1 + (100 / (100 + fCrystalLength));
+    // G4double scaleA = 1, scaleB = 1 + (100 / (100 + fCrystalLength));
+    G4double scaleA = 1, scaleB = 2;
 
-    const auto fPMTRadius = fPolygonCrystalWidth * scaleB * 0.5;
-    const auto fPMTCathodeRadius = fPMTRadius;
+    // const auto fPMTRadius = fPolygonCrystalWidth * scaleB * 0.5;
+    const auto fPMTRadius = 25.5 * mm;
+    const auto fPMTCathodeRadius = 23 * mm;
 
     const auto Transform =
         [&fCrystalLength, crystalTail = G4ThreeVector(0, 0, fCrystalLength / 2)](double transformDistance) {
