@@ -129,9 +129,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     // Construct Material Optical Properties Tables
     //////////////////////////////////////////////////
 
-    // const auto pmmaPropertiesTable = new G4MaterialPropertiesTable();
-    // pmmaPropertiesTable->AddProperty("RINDEX", "PMMA");
-
     constexpr auto fLambda_min = 200 * nm;
     constexpr auto fLambda_max = 700 * nm;
     std::vector<G4double> fEnergyPair = {h_Planck * c_light / fLambda_max,
@@ -158,72 +155,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto windowPropertiesTable = new G4MaterialPropertiesTable();
     windowPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.49, 1.49});
     glass->SetMaterialPropertiesTable(windowPropertiesTable);
-
-    //============================================ PMMA ===============================================
-
-    const auto NENTRIES = 11;
-
-    std::vector<G4double> RINDEX_ACRYLIC;
-    std::vector<G4double> ENERGY_ACRYLIC;
-
-    // Parameterization for refractive index of High Grade PMMA
-
-    G4double bParam[4] = {1760.7010, -1.3687, 2.4388e-3, -1.5178e-6};
-    auto lambda = 0.;
-
-    for (auto i = 0; i < NENTRIES; ++i) {
-
-        // want energies in increasing order
-        lambda = fLambda_min + (NENTRIES - 1 - i) * (fLambda_max - fLambda_min) / float(NENTRIES - 1);
-        RINDEX_ACRYLIC.push_back(0.0);
-
-        for (auto jj = 0; jj < 4; jj++) {
-            RINDEX_ACRYLIC[i] += (bParam[jj] / 1000.0) * std::pow(lambda / nm, jj);
-        }
-
-        ENERGY_ACRYLIC.push_back(h_Planck * c_light / lambda); // Convert from wavelength to energy ;
-                                                               // G4cout << ENERGY_ACRYLIC[i]/eV << " " << lambda/nm << " " << RINDEX_ACRYLIC[i] << G4endl ;
-    }
-
-    const auto acrylicPropertiesTable = new G4MaterialPropertiesTable();
-    acrylicPropertiesTable->AddProperty("RINDEX", ENERGY_ACRYLIC, RINDEX_ACRYLIC);
-
-    std::vector<G4double> LAMBDAABS{
-        100.0,
-        246.528671, 260.605103, 263.853516, 266.019104, 268.726105,
-        271.433136, 273.598724, 276.305725, 279.554138, 300.127380,
-        320.159241, 340.191101, 360.764343, 381.337585, 399.745239,
-        421.401276, 440.891724, 460.382172, 480.414001, 500.987274,
-        520.477722, 540.509583, 559.458618,
-        700.0};
-
-    std::vector<G4double> ABS // Transmission (in %) of  3mm thick PMMA
-        {
-            0.0000000,
-            0.0000000, 5.295952, 9.657321, 19.937695, 29.283491,
-            39.252335, 48.598133, 58.255451, 65.109039, 79.439247,
-            85.669785, 89.719627, 91.277260, 91.588783, 91.900307,
-            91.588783, 91.277260, 91.277260, 91.588783, 91.588783,
-            91.900307, 91.900307, 91.588783,
-            91.5};
-
-    acrylicPropertiesTable->AddProperty("ABSLENGTH", new G4MaterialPropertyVector());
-
-    for (size_t i = 0; i < ABS.size(); ++i) {
-        auto energy = h_Planck * c_light / (LAMBDAABS[i] * nm);
-        auto abslength = 0.0;
-
-        if (ABS[i] <= 0.0) {
-            abslength = 1.0 / kInfinity;
-        } else {
-            abslength = -3.0 * mm / (G4Log(ABS[i] / 100.0));
-        }
-
-        acrylicPropertiesTable->AddEntry("ABSLENGTH", energy, abslength);
-    }
-
-    acrylic->SetMaterialPropertiesTable(acrylicPropertiesTable);
-    acrylicPropertiesTable->DumpTable();
 
     //============================================ Crystal ============================================
 
@@ -392,7 +323,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
                    [](auto n) { return n * perCent; });
 
     cathodeSurfacePropertiesTable->AddProperty("REFLECTIVITY", fEnergyPair, {0., 0.});
-    cathodeSurfacePropertiesTable->AddProperty("EFFICIENCY", cathodeEnergyBin, cathodeQuantumEfficiency);
+    cathodeSurfacePropertiesTable->AddProperty("EFFICIENCY", cathodeSurfacePropertiesEnergy, cathodeSurfacePropertiesEfficiency);
 
     /////////////////////////////////////////////
     // Construct Volumes
