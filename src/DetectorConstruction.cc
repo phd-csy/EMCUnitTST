@@ -161,7 +161,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     const auto windowPropertiesTable = new G4MaterialPropertiesTable();
     windowPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.55, 1.55});
-    glass->SetMaterialPropertiesTable(windowPropertiesTable);
+    epoxy->SetMaterialPropertiesTable(windowPropertiesTable);
 
     //============================================ Crystal ============================================
 
@@ -397,7 +397,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     // const auto rfSurface = new G4OpticalSurface("reflector", LUT, polishedvm2000glue, dielectric_LUT);
     const auto rfSurface = new G4OpticalSurface("reflector", unified, polished, dielectric_metal);
     rfSurface->SetMaterialPropertiesTable(rfSurfacePropertiesTable);
-    new G4LogicalBorderSurface("rfSurface", crystalPV, worldPV, rfSurface);
+    new G4LogicalBorderSurface("rfSurface", crystalPV, reflectorPV, rfSurface);
 
     const auto couplerSurface = new G4OpticalSurface("coupler", unified, polished, dielectric_dielectric);
     couplerSurface->SetMaterialPropertiesTable(couplerSurfacePropertiesTable);
@@ -405,7 +405,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     const auto airPaintSurface = new G4OpticalSurface("Paint", unified, polished, dielectric_metal);
     airPaintSurface->SetMaterialPropertiesTable(airPaintSurfacePropertiesTable);
-    new G4LogicalBorderSurface("AirPaintSurface", worldPV, crystalPV, airPaintSurface);
+    new G4LogicalBorderSurface("AirPaintSurface", reflectorPV, crystalPV, airPaintSurface);
 
     const auto cathodeSurface = new G4OpticalSurface("Cathode", unified, polished, dielectric_metal);
     cathodeSurface->SetMaterialPropertiesTable(cathodeSurfacePropertiesTable);
