@@ -1,0 +1,25 @@
+/control/verbose 0
+/run/verbose 0
+/event/verbose 0
+/tracking/verbose 0
+/run/initialize
+
+/gps/source/intensity 124
+/gps/particle ion
+/gps/ion 92 238
+/gps/pos/centre 0. 0. -5. cm
+
+/gps/source/add 121.5
+/gps/particle ion
+/gps/ion 90 232
+/gps/pos/centre 0. 0. -5. cm
+
+/gps/source/add 1355
+/gps/particle ion
+/gps/ion 19 40
+/gps/pos/centre 0. 0. -5. cm
+
+/analysis/setFileName bkg
+
+/run/printProgress 10000
+/run/beamOn 1000000

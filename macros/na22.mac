@@ -1,0 +1,13 @@
+/control/verbose 0
+/run/verbose 0
+/event/verbose 0
+/tracking/verbose 0
+/run/initialize
+
+/gps/particle ion
+/gps/ion 11 22
+/gps/ene/mono 0.
+/gps/pos/centre 0. 0. -5. cm
+
+/run/printProgress 10000
+/run/beamOn 1000000

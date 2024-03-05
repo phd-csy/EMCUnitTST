@@ -5,9 +5,11 @@
 /run/initialize
 
 /gps/particle ion
-/gps/ion 55 137
+/gps/ion 63 152
 /gps/ene/mono 0.
 /gps/pos/centre 0. 0. -5. cm
 
-/run/printProgress 1000
-/run/beamOn 5000
+/analysis/setFileName eu152
+
+/run/printProgress 10000
+/run/beamOn 1000000
