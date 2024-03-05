@@ -335,53 +335,46 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto worldPV = new G4PVPlacement(nullptr, {}, worldLV, "World", nullptr, false, 0, true);
 
     const auto fCrystalWidth = 3 * cm;
-    // const auto fCrystalLength = 8 * cm;
+    const auto fCrystalLength = 8 * cm;
 
     const auto fReflectorThickness = 0.5 * mm;
 
-    // const auto fPMTRadius = 19 * mm;
-    // const auto fPMTCathodeRadius = 17 * mm;
+    const auto fPMTRadius = 19 * mm;
+    const auto fPMTCathodeRadius = 17 * mm;
 
     const auto fCouplerThickness = 0.1 * mm;
     const auto fWindowThickness = 1 * mm;
     const auto fCathodeThickness = 20 * nm;
 
-    const auto offsetlength = 0 * cm;
-
-    // const auto fPMTRadius = 25.5 * mm;
-    // const auto fPMTCathodeRadius = 23 * mm;
     // const auto nsect = 5;
-    // const auto fPolygonCrystalWidth = 37 * mm;
+    // const auto fCrystalLength = 146.73 * mm;
+    // const auto fPolygonCrystalWidth = 20.522 * mm;
 
-    const auto nsect = 5;
-    const auto fCrystalLength = 146.73 * mm;
-    const auto fPolygonCrystalWidth = 20.522 * mm;
+    // std::vector<G4TwoVector> polygon(nsect);
+    // G4double ang = twopi / nsect;
+    // for (int i = 0; i < nsect; ++i) {
+    //     G4double phi = i * ang;
+    //     G4double cosphi = std::cos(phi);
+    //     G4double sinphi = std::sin(phi);
+    //     polygon[i].set(fPolygonCrystalWidth * cosphi, fPolygonCrystalWidth * sinphi);
+    // }
 
-    std::vector<G4TwoVector> polygon(nsect);
-    G4double ang = twopi / nsect;
-    for (int i = 0; i < nsect; ++i) {
-        G4double phi = i * ang;
-        G4double cosphi = std::cos(phi);
-        G4double sinphi = std::sin(phi);
-        polygon[i].set(fPolygonCrystalWidth * cosphi, fPolygonCrystalWidth * sinphi);
-    }
-
-    G4TwoVector offsetA(0, 0), offsetB(0, offsetlength);
+    // G4TwoVector offsetA(0, 0), offsetB(0, offsetlength);
     // G4double scaleA = 1, scaleB = 1 + (100 / (100 + fCrystalLength));
-    G4double scaleA = 1, scaleB = 2;
+    // G4double scaleA = 1, scaleB = 2;
 
     // const auto fPMTRadius = fPolygonCrystalWidth * scaleB * 0.5;
-    const auto fPMTRadius = 25.5 * mm;
-    const auto fPMTCathodeRadius = 23 * mm;
+    // const auto fPMTRadius = 25.5 * mm;
+    // const auto fPMTCathodeRadius = 23 * mm;
 
     const auto Transform =
         [&fCrystalLength, crystalTail = G4ThreeVector(0, 0, fCrystalLength / 2)](double transformDistance) {
             return G4Translate3D{crystalTail + G4ThreeVector(0, 0, transformDistance)};
         };
 
-    const auto crystalSV = new G4ExtrudedSolid("Extruded", polygon, fCrystalLength / 2, offsetA, scaleA, offsetB, scaleB);
+    // const auto crystalSV = new G4ExtrudedSolid("Extruded", polygon, fCrystalLength / 2, offsetA, scaleA, offsetB, scaleB);
 
-    // const auto crystalSV = new G4Box("crystal", fCrystalWidth / 2, fCrystalWidth / 2, fCrystalLength / 2);
+    const auto crystalSV = new G4Box("crystal", fCrystalWidth / 2, fCrystalWidth / 2, fCrystalLength / 2);
     //========================================== CsI(Tl) ============================================
     const auto crystalLV = new G4LogicalVolume{crystalSV, csI, "crystal"};
     //========================================== LaBr3(Ce) ==========================================
@@ -392,10 +385,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     // const auto crystalLV = new G4LogicalVolume{crystalSV, bgo, "crystal"};
     const auto crystalPV = new G4PVPlacement(G4Transform3D{}, crystalLV, "crystal", worldLV, false, 0, true);
 
-    // const auto reflectorSV = new G4Box("reflector", fCrystalWidth / 2 + fReflectorThickness, fCrystalWidth / 2 + fReflectorThickness, fCrystalLength / 2 + fReflectorThickness);
-    // const auto cuttedReflector = new G4SubtractionSolid("reflector", reflectorSV, crystalSV, G4Translate3D(0, 0, fReflectorThickness));
-    // const auto reflectorLV = new G4LogicalVolume{cuttedReflector, pet, "reflector"};
-    // const auto reflectorPV = new G4PVPlacement{G4Translate3D(0, 0, -fReflectorThickness), reflectorLV, "reflector", worldLV, false, 0, true};
+    const auto reflectorSV = new G4Box("reflector", fCrystalWidth / 2 + fReflectorThickness, fCrystalWidth / 2 + fReflectorThickness, fCrystalLength / 2 + fReflectorThickness);
+    const auto cuttedReflector = new G4SubtractionSolid("reflector", reflectorSV, crystalSV, G4Translate3D(0, 0, fReflectorThickness));
+    const auto reflectorLV = new G4LogicalVolume{cuttedReflector, pet, "reflector"};
+    const auto reflectorPV = new G4PVPlacement{G4Translate3D(0, 0, -fReflectorThickness), reflectorLV, "reflector", worldLV, false, 0, true};
 
     const auto couplerSV = new G4Tubs("coupler", 0, fPMTRadius, fCouplerThickness / 2, 0, 2 * pi);
     const auto couplerLV = new G4LogicalVolume(couplerSV, siliconeOil, "CrystalCoupler");
