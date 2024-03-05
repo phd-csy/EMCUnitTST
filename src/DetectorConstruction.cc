@@ -18,8 +18,10 @@
 #include "G4OpticalMaterialProperties.hh"
 #include "G4OpticalSurface.hh"
 #include "G4PhysicalConstants.hh"
+#include "G4PVDivision.hh"
 #include "G4PVPlacement.hh"
 #include "G4QuadrangularFacet.hh"
+#include "G4ReplicatedSlice.hh"
 #include "G4RunManager.hh"
 #include "G4SDManager.hh"
 #include "G4SubtractionSolid.hh"
@@ -113,6 +115,11 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     plastic->AddElement(hydrogenElement, 0.085 * 0.8);
     plastic->AddElement(bismuthElement, 0.2);
 
+    const auto epoxy = new G4Material("Epoxy", 1.18 * g / cm3, 3, kStateSolid);
+    epoxy->AddElement(carbonElement, 73.62 * perCent);
+    epoxy->AddElement(hydrogenElement, 6.75 * perCent);
+    epoxy->AddElement(oxygenElement, 19.63 * perCent);
+
     // const auto labr = new G4Material("LaBr3", 5.08 * g / cm3, 3, kStateSolid);
     // labr->AddElement(bromideElement, 0.631308);
     // labr->AddElement(cesiumElement, 0.036582);
@@ -153,7 +160,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     //============================================ Optical Window =====================================
 
     const auto windowPropertiesTable = new G4MaterialPropertiesTable();
-    windowPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.49, 1.49});
+    windowPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.55, 1.55});
     glass->SetMaterialPropertiesTable(windowPropertiesTable);
 
     //============================================ Crystal ============================================
@@ -285,45 +292,19 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     const auto cathodeSurfacePropertiesTable = new G4MaterialPropertiesTable();
 
-    std::vector<G4double> pmtWaveLengthBin = {715.759, 704.541, 687.714, 670.887, 654.06, 637.234, 620.807, 606.384,
-                                              592.562, 584.019, 577.939, 571.814, 566.671, 562.542, 558.307, 553.099,
-                                              547.49, 541.48, 534.669, 527.057, 519.361, 511.903, 505.422, 499.413,
-                                              493.804, 487.821, 481.651, 473.856, 465.246, 456.513, 443.724, 427.297,
-                                              410.47, 393.643, 376.816, 359.989, 347.57, 341.159, 335.766, 332.51,
-                                              328.633, 325.763, 323.291, 320.44, 318.552, 316.506, 313.615, 312.091,
-                                              309.509, 307.334, 305.549, 302.698, 301.596, 299.342, 296.555, 294.161,
-                                              291.88, 288.847, 285.737, 281.108};
-    std::vector<G4double> pmtQuantumEfficiency = {0.206, 0.237, 0.282, 0.398, 0.74, 1.321, 2.113, 3.024,
-                                                  3.969, 4.905, 5.856, 6.819, 7.723, 8.636, 9.57, 10.508,
-                                                  11.467, 12.374, 13.281, 14.205, 15.191, 16.195, 17.195,
-                                                  18.114, 18.987, 19.886, 20.83, 21.794, 22.8, 23.806, 24.644,
-                                                  25.312, 25.713, 25.932, 25.835, 25.279, 24.266, 23.367, 22.357,
-                                                  21.43, 20.344, 19.319, 18.363, 17.294, 16.265, 15.232, 14.053,
-                                                  12.759, 11.486, 10.345, 9.229, 8.193, 7.198, 6.108, 5.136, 4.241,
-                                                  3.37, 2.403, 1.447, 0.466}; // ET 9269B
-
-    // std::vector<double> pmtWaveLengthBin = {724.051, 718.527, 710.242, 701.266, 694.361, 685.386, 677.1, 668.815,
-    //                                         658.458, 652.244, 642.578, 632.221, 621.864, 610.127, 596.318, 581.818,
-    //                                         567.319, 559.724, 547.986, 538.32, 523.82, 512.083, 495.512, 483.084,
-    //                                         461.68, 447.871, 414.039, 398.159, 380.207, 360.184, 338.78, 328.423,
-    //                                         317.376, 310.472, 303.567, 298.734};
-
-    // std::vector<double> pmtQuantumEfficiency = {0.011, 0.015, 0.022, 0.033, 0.05, 0.076, 0.115, 0.173,
-    //                                             0.289, 0.393, 0.593, 0.899, 1.337, 2.002, 2.956, 4.335,
-    //                                             5.978, 6.901, 8.648, 9.915, 12.34, 13.956, 16.558, 18.472,
-    //                                             21.179, 23.148, 26.18, 27.841, 27.841, 26.359, 22.678, 19.511,
-    //                                             15.15, 12.769, 8.887, 5.286}; // CR 284
-
-    std::vector<G4double> cathodeSurfacePropertiesEnergy(pmtWaveLengthBin.size());
-    std::vector<G4double> cathodeSurfacePropertiesEfficiency(pmtQuantumEfficiency.size());
-
-    std::transform(pmtWaveLengthBin.begin(), pmtWaveLengthBin.end(), cathodeSurfacePropertiesEnergy.begin(),
-                   [](auto val) { return h_Planck * c_light / (val * nm / mm); });
-    std::transform(pmtQuantumEfficiency.begin(), pmtQuantumEfficiency.end(), cathodeSurfacePropertiesEfficiency.begin(),
-                   [](auto n) { return n * perCent; });
+    std::vector<G4double> sipmEnergyBin = {1.40E-06, 1.44E-06, 1.50E-06, 1.56E-06, 1.63E-06, 1.69E-06, 1.76E-06, 1.82E-06,
+                                           1.88E-06, 1.93E-06, 1.98E-06, 2.03E-06, 2.09E-06, 2.17E-06, 2.24E-06, 2.30E-06,
+                                           2.38E-06, 2.48E-06, 2.64E-06, 2.84E-06, 3.01E-06, 3.13E-06, 3.22E-06, 3.25E-06,
+                                           3.34E-06, 3.41E-06, 3.49E-06, 3.59E-06, 3.62E-06, 3.67E-06, 3.72E-06, 3.77E-06,
+                                           3.79E-06, 3.86E-06};
+    std::vector<G4double> sipmQuantumEfficiency = {0.038204608, 0.049561724, 0.066092061, 0.084585974, 0.103160774, 0.12483983, 0.145920339, 0.167429879,
+                                                   0.187343302, 0.206777439, 0.229192371, 0.249945581, 0.269091999, 0.297374916, 0.323900966, 0.344069886,
+                                                   0.364481152, 0.385104958, 0.399383156, 0.392068233, 0.369892386, 0.348694706, 0.324319675, 0.301670517,
+                                                   0.279767001, 0.258464601, 0.231195542, 0.198458795, 0.162145893, 0.13310099, 0.098584057, 0.072563977,
+                                                   0.053495328, 0.032820352};
 
     cathodeSurfacePropertiesTable->AddProperty("REFLECTIVITY", fEnergyPair, {0., 0.});
-    cathodeSurfacePropertiesTable->AddProperty("EFFICIENCY", cathodeSurfacePropertiesEnergy, cathodeSurfacePropertiesEfficiency);
+    cathodeSurfacePropertiesTable->AddProperty("EFFICIENCY", sipmEnergyBin, sipmQuantumEfficiency);
 
     /////////////////////////////////////////////
     // Construct Volumes
@@ -339,12 +320,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     const auto fReflectorThickness = 0.5 * mm;
 
-    const auto fPMTRadius = 19 * mm;
-    const auto fPMTCathodeRadius = 17 * mm;
-
     const auto fCouplerThickness = 0.1 * mm;
     const auto fWindowThickness = 1 * mm;
-    const auto fCathodeThickness = 20 * nm;
+    const auto fSiPMWidth = 3 * mm;
+    const auto fSiPMThickness = 0.1 * mm;
 
     // const auto nsect = 5;
     // const auto fCrystalLength = 146.73 * mm;
@@ -390,20 +369,28 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto reflectorLV = new G4LogicalVolume{cuttedReflector, pet, "reflector"};
     const auto reflectorPV = new G4PVPlacement{G4Translate3D(0, 0, -fReflectorThickness), reflectorLV, "reflector", worldLV, false, 0, true};
 
-    const auto couplerSV = new G4Tubs("coupler", 0, fPMTRadius, fCouplerThickness / 2, 0, 2 * pi);
-    const auto couplerLV = new G4LogicalVolume(couplerSV, siliconeOil, "CrystalCoupler");
-    const auto couplerPV = new G4PVPlacement(Transform(fCouplerThickness / 2),
-                                             couplerLV, "CrystalCoupler", worldLV, false, 0, true);
+    const auto solidCoupler = new G4Box("coupler", fCrystalWidth / 2, fCrystalWidth / 2, fCouplerThickness / 2);
+    const auto logicalCoupler = new G4LogicalVolume(solidCoupler, siliconeOil, "CrystalCoupler");
+    const auto physicalCoupler = new G4PVPlacement(Transform(fCouplerThickness / 2),
+                                                   logicalCoupler, "CrystalCoupler", worldLV, false, 0, true);
 
-    const auto windowSV = new G4Tubs("window", 0, fPMTRadius, fWindowThickness / 2, 0, 2 * pi);
-    const auto windowLV = new G4LogicalVolume(windowSV, glass, "window");
+    const auto windowSV = new G4Box("window", fCrystalWidth / 2, fCrystalWidth / 2, fWindowThickness / 2);
+    const auto windowLV = new G4LogicalVolume(windowSV, epoxy, "window");
     const auto windowPV = new G4PVPlacement{Transform(fCouplerThickness + fWindowThickness / 2),
                                             windowLV, "window", worldLV, false, 0, true};
 
-    const auto sipmSV = new G4Tubs("sipm", 0, fPMTCathodeRadius, fCathodeThickness / 2, 0, 2 * pi);
-    const auto sipmLV = new G4LogicalVolume(sipmSV, silicon, "sipm");
-    new G4PVPlacement(Transform(fCouplerThickness + fWindowThickness + fCathodeThickness / 2),
-                      sipmLV, "sipm", worldLV, false, 0, true);
+    const auto solidSipm = new G4Box("sipm", fSiPMWidth / 2, fSiPMWidth / 2, fSiPMThickness / 2);
+    const auto logicalSipm = new G4LogicalVolume(solidSipm, silicon, "sipm");
+    int n = 4;
+    new G4PVPlacement(0, G4ThreeVector((n - 0.5) * (fSiPMWidth + 0.2 * mm), (n - 0.5) * (fSiPMWidth + 0.2 * mm), fCrystalLength / 2 + fCouplerThickness + fWindowThickness + fSiPMThickness / 2),
+                      logicalSipm, "sipm", worldLV, false, 0, true);
+
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            new G4PVPlacement(0, G4ThreeVector((n - 0.5) * (fSiPMWidth + 0.2 * mm) - i * (fSiPMWidth + 0.2 * mm), (n - 0.5) * (fSiPMWidth + 0.2 * mm) - j * (fSiPMWidth + 0.2 * mm), fCrystalLength / 2 + fCouplerThickness + fWindowThickness + fSiPMThickness / 2),
+                              logicalSipm, "sipm", worldLV, false, 0, true);
+        }
+    }
 
     // Define Surface
 
@@ -414,7 +401,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     const auto couplerSurface = new G4OpticalSurface("coupler", unified, polished, dielectric_dielectric);
     couplerSurface->SetMaterialPropertiesTable(couplerSurfacePropertiesTable);
-    new G4LogicalBorderSurface("couplerSurface", crystalPV, couplerPV, couplerSurface);
+    new G4LogicalBorderSurface("couplerSurface", crystalPV, physicalCoupler, couplerSurface);
 
     const auto airPaintSurface = new G4OpticalSurface("Paint", unified, polished, dielectric_metal);
     airPaintSurface->SetMaterialPropertiesTable(airPaintSurfacePropertiesTable);
@@ -422,7 +409,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     const auto cathodeSurface = new G4OpticalSurface("Cathode", unified, polished, dielectric_metal);
     cathodeSurface->SetMaterialPropertiesTable(cathodeSurfacePropertiesTable);
-    new G4LogicalSkinSurface("cathodeSkinSurface", sipmLV, cathodeSurface);
+    new G4LogicalSkinSurface("cathodeSkinSurface", logicalSipm, cathodeSurface);
 
     ++cellNumber;
 
