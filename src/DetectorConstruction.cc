@@ -392,13 +392,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     const auto crystalSV = new G4Box("crystal", fCrystalWidth / 2, fCrystalWidth / 2, fCrystalLength / 2);
     //========================================== CsI(Tl) ============================================
-    const auto crystalLV = new G4LogicalVolume{crystalSV, csI, "crystal"};
+    // const auto crystalLV = new G4LogicalVolume{crystalSV, csI, "crystal"};
     //========================================== LaBr3(Ce) ==========================================
     // const auto crystalLV = new G4LogicalVolume{crystalSV, labr, "crystal"};
     //========================================== LYSO(Ce) ===========================================
     // const auto crystalLV = new G4LogicalVolume{crystalSV, lyso, "crystal"};
     //===============================================================================================
-    // const auto crystalLV = new G4LogicalVolume{crystalSV, bgo, "crystal"};
+    const auto crystalLV = new G4LogicalVolume{crystalSV, liquidXe, "crystal"};
     const auto crystalPV = new G4PVPlacement(G4Transform3D{}, crystalLV, "crystal", worldLV, false, 0, true);
 
     const auto reflectorSV = new G4Box("reflector", fCrystalWidth / 2 + fReflectorThickness, fCrystalWidth / 2 + fReflectorThickness, fCrystalLength / 2 + fReflectorThickness);
