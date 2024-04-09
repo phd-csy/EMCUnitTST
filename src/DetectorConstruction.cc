@@ -83,6 +83,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto antimonyElement = nistManager->FindOrBuildElement("Sb");
     const auto bismuthElement = nistManager->FindOrBuildElement("Bi");
 
+    const auto xenonElement = nistManager->FindOrBuildElement("Xe");
+
+    const auto liquidXe = new G4Material("LXe", 3.02 * g / cm3, kStateLiquid);
+
     const auto pet = new G4Material("PET", 1.38 * g / cm3, 3, kStateSolid);
     pet->AddElement(hydrogenElement, 0.041962);
     pet->AddElement(carbonElement, 0.625008);
@@ -231,6 +235,18 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     bgoPropertiesTable->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 300 * ns);
     bgoPropertiesTable->AddConstProperty("RESOLUTIONSCALE", 1.0);
     bgo->SetMaterialPropertiesTable(bgoPropertiesTable);
+
+    std::vector<G4double> xeEnergyBin = {7.0 * eV, 7.07 * eV, 7.14 * eV};
+    const auto xePropertiesTable = new G4MaterialPropertiesTable();
+    xePropertiesTable->AddProperty("RINDEX", xeEnergyBin, {1.59, 1.57, 1.54});
+    xePropertiesTable->AddProperty("ABSLENGTH", xeEnergyBin, {1.59, 1.57, 1.54});
+    xePropertiesTable->AddProperty("SCINTILLATIONCOMPONENT1", xeEnergyBin, {0.1, 1.0, 0.1});
+    xePropertiesTable->AddProperty("SCINTILLATIONCOMPONENT2", xeEnergyBin, {0.1, 1.0, 0.1});
+    xePropertiesTable->AddConstProperty("SCINTILLATIONYIELD", 45000. / MeV);
+    xePropertiesTable->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 20 * ns);
+    xePropertiesTable->AddConstProperty("SCINTILLATIONTIMECONSTANT2", 45 * ns);
+    xePropertiesTable->AddConstProperty("RESOLUTIONSCALE", 1.0);
+    liquidXe->SetMaterialPropertiesTable(xePropertiesTable);
 
     // Plastic Scintillators
 
