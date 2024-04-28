@@ -85,12 +85,18 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     const auto xenonElement = nistManager->FindOrBuildElement("Xe");
 
-    const auto liquidXe = new G4Material("LXe", 3.02 * g / cm3, kStateLiquid);
+    const auto liquidXe = new G4Material("LXe", 3.02 * g / cm3, 1, kStateLiquid);
+    liquidXe->AddElement(xenonElement, 1);
 
     const auto pet = new G4Material("PET", 1.38 * g / cm3, 3, kStateSolid);
     pet->AddElement(hydrogenElement, 0.041962);
     pet->AddElement(carbonElement, 0.625008);
     pet->AddElement(oxygenElement, 0.333030);
+
+    const auto acrylic = new G4Material("acrylic", 1.19 * g / cm3, 3);
+    acrylic->AddElement(carbonElement, 5);
+    acrylic->AddElement(hydrogenElement, 8);
+    acrylic->AddElement(oxygenElement, 2);
 
     const auto siliconeOil = new G4Material("silicone_oil", 0.97 * g / cm3, 4, kStateLiquid);
     siliconeOil->AddElement(carbonElement, 2);
@@ -239,7 +245,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     std::vector<G4double> xeEnergyBin = {7.0 * eV, 7.07 * eV, 7.14 * eV};
     const auto xePropertiesTable = new G4MaterialPropertiesTable();
     xePropertiesTable->AddProperty("RINDEX", xeEnergyBin, {1.59, 1.57, 1.54});
-    xePropertiesTable->AddProperty("ABSLENGTH", xeEnergyBin, {1.59, 1.57, 1.54});
+    xePropertiesTable->AddProperty("ABSLENGTH", xeEnergyBin, {35. * cm, 35. * cm, 35. * cm});
     xePropertiesTable->AddProperty("SCINTILLATIONCOMPONENT1", xeEnergyBin, {0.1, 1.0, 0.1});
     xePropertiesTable->AddProperty("SCINTILLATIONCOMPONENT2", xeEnergyBin, {0.1, 1.0, 0.1});
     xePropertiesTable->AddConstProperty("SCINTILLATIONYIELD", 45000. / MeV);
@@ -339,7 +345,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
                    [](auto n) { return n * perCent; });
 
     cathodeSurfacePropertiesTable->AddProperty("REFLECTIVITY", fEnergyPair, {0., 0.});
-    cathodeSurfacePropertiesTable->AddProperty("EFFICIENCY", cathodeSurfacePropertiesEnergy, cathodeSurfacePropertiesEfficiency);
+    // cathodeSurfacePropertiesTable->AddProperty("EFFICIENCY", cathodeSurfacePropertiesEnergy, cathodeSurfacePropertiesEfficiency);
+    cathodeSurfacePropertiesTable->AddProperty("EFFICIENCY", fEnergyPair, {1., 1.});
 
     /////////////////////////////////////////////
     // Construct Volumes
@@ -353,7 +360,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto fCrystalWidth = 3 * cm;
     const auto fCrystalLength = 8 * cm;
 
-    const auto fReflectorThickness = 0.5 * mm;
+    const auto fReflectorThickness = 5 * cm;
 
     const auto fPMTRadius = 19 * mm;
     const auto fPMTCathodeRadius = 17 * mm;
@@ -403,7 +410,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     const auto reflectorSV = new G4Box("reflector", fCrystalWidth / 2 + fReflectorThickness, fCrystalWidth / 2 + fReflectorThickness, fCrystalLength / 2 + fReflectorThickness);
     const auto cuttedReflector = new G4SubtractionSolid("reflector", reflectorSV, crystalSV, G4Translate3D(0, 0, fReflectorThickness));
-    const auto reflectorLV = new G4LogicalVolume{cuttedReflector, pet, "reflector"};
+    const auto reflectorLV = new G4LogicalVolume{cuttedReflector, aluminum, "reflector"};
     const auto reflectorPV = new G4PVPlacement{G4Translate3D(0, 0, -fReflectorThickness), reflectorLV, "reflector", worldLV, false, 0, true};
 
     const auto couplerSV = new G4Tubs("coupler", 0, fPMTRadius, fCouplerThickness / 2, 0, 2 * pi);
