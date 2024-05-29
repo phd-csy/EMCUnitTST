@@ -62,7 +62,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto air = nistManager->BuildMaterialWithNewDensity("Vacuum", "G4_AIR", 1e-12 * g / cm3);
     const auto aluminum = nistManager->FindOrBuildMaterial("G4_Al");
     const auto silicon = nistManager->FindOrBuildMaterial("G4_Si");
-    const auto pvc = nistManager->FindOrBuildMaterial("G4_POLYVINYL_CHLORIDE");
     const auto bgo = nistManager->FindOrBuildMaterial("G4_BGO");
     const auto glass = nistManager->FindOrBuildMaterial("G4_GLASS_PLATE");
 
@@ -82,11 +81,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto potassiumElement = nistManager->FindOrBuildElement("K");
     const auto antimonyElement = nistManager->FindOrBuildElement("Sb");
     const auto bismuthElement = nistManager->FindOrBuildElement("Bi");
-
-    const auto xenonElement = nistManager->FindOrBuildElement("Xe");
-
-    const auto liquidXe = new G4Material("LXe", 3.02 * g / cm3, 1, kStateLiquid);
-    liquidXe->AddElement(xenonElement, 1);
 
     const auto pet = new G4Material("PET", 1.38 * g / cm3, 3, kStateSolid);
     pet->AddElement(hydrogenElement, 0.041962);
@@ -109,31 +103,22 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     csI->AddElement(iodideElement, 0.484639);
     csI->AddElement(thaliumElement, 0.007805);
 
+    const auto labr = new G4Material("LaBr3", 5.08 * g / cm3, 3, kStateSolid);
+    labr->AddElement(bromideElement, 0.631308);
+    labr->AddElement(cesiumElement, 0.036582);
+    labr->AddElement(lanthanumElement, 0.332110);
+
+    const auto lyso = new G4Material("LYSO", 7.1 * g / cm3, 5, kStateSolid);
+    lyso->AddElement(oxygenElement, 0.175801);
+    lyso->AddElement(siliconElement, 0.061720);
+    lyso->AddElement(yttriumElement, 0.019538);
+    lyso->AddElement(lutetiumElement, 0.730562);
+    lyso->AddElement(cesiumElement, 0.012379);
+
     const auto bialkali = new G4Material("Bialkali", 2.0 * g / cm3, 3, kStateSolid);
     bialkali->AddElement(potassiumElement, 2);
     bialkali->AddElement(cesiumElement, 1);
     bialkali->AddElement(antimonyElement, 1);
-
-    // const auto plastic = new G4Material("EJ200", 1.023 * g / cm3, 2, kStateSolid);
-    // plastic->AddElement(hydrogenElement, 0.084744);
-    // plastic->AddElement(carbonElement, 0.915256);
-
-    const auto plastic = new G4Material("Doped", 1.03 * g / cm3, 3, kStateSolid);
-    plastic->AddElement(carbonElement, 0.915 * 0.8);
-    plastic->AddElement(hydrogenElement, 0.085 * 0.8);
-    plastic->AddElement(bismuthElement, 0.2);
-
-    // const auto labr = new G4Material("LaBr3", 5.08 * g / cm3, 3, kStateSolid);
-    // labr->AddElement(bromideElement, 0.631308);
-    // labr->AddElement(cesiumElement, 0.036582);
-    // labr->AddElement(lanthanumElement, 0.332110);
-
-    // const auto lyso = new G4Material("LYSO", 7.1 * g / cm3, 5, kStateSolid);
-    // lyso->AddElement(oxygenElement, 0.175801);
-    // lyso->AddElement(siliconElement, 0.061720);
-    // lyso->AddElement(yttriumElement, 0.019538);
-    // lyso->AddElement(lutetiumElement, 0.730562);
-    // lyso->AddElement(cesiumElement, 0.012379);
 
     //////////////////////////////////////////////////
     // Construct Material Optical Properties Tables
@@ -225,74 +210,22 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     // lysoPropertiesTable->AddConstProperty("RESOLUTIONSCALE", lysoProperties["RESOLUTIONSCALE"].front());
     // lyso->SetMaterialPropertiesTable(lysoPropertiesTable);
 
-    // BGO
+    // // BGO
 
-    std::vector<G4double> bgoWaveLengthBin = {635.394, 629.507, 621.889, 614.27, 606.652, 599.033, 591.414, 583.796, 576.177, 568.905, 562.325, 556.092, 550.205, 544.664, 539.124, 533.929, 529.081, 523.886, 517.999, 511.073, 503.455, 495.836, 488.218, 480.599, 472.981, 465.362, 458.436, 452.895, 448.394, 444.584, 440.775, 436.619, 432.81, 429.347, 425.884, 422.768, 419.651, 416.188, 412.725, 409.262, 405.799, 401.99, 397.488, 392.64, 387.445, 381.558, 376.284};
-    std::vector<G4double> bgoEnergyBin(bgoWaveLengthBin.size());
-    std::vector<G4double> bgoScintillationComponent1 = {0.107, 0.127, 0.156, 0.186, 0.218, 0.253, 0.289, 0.325, 0.363, 0.402, 0.442, 0.481, 0.521, 0.56, 0.6, 0.641, 0.68, 0.721, 0.758, 0.798, 0.839, 0.875, 0.899, 0.909, 0.9, 0.875, 0.839, 0.8, 0.76, 0.721, 0.68, 0.635, 0.592, 0.552, 0.509, 0.469, 0.428, 0.383, 0.339, 0.296, 0.257, 0.217, 0.176, 0.136, 0.099, 0.059, 0.026};
-    std::transform(bgoWaveLengthBin.begin(), bgoWaveLengthBin.end(), bgoEnergyBin.begin(),
-                   [](auto val) { return h_Planck * c_light / (val * nm / mm); });
+    // std::vector<G4double> bgoWaveLengthBin = {635.394, 629.507, 621.889, 614.27, 606.652, 599.033, 591.414, 583.796, 576.177, 568.905, 562.325, 556.092, 550.205, 544.664, 539.124, 533.929, 529.081, 523.886, 517.999, 511.073, 503.455, 495.836, 488.218, 480.599, 472.981, 465.362, 458.436, 452.895, 448.394, 444.584, 440.775, 436.619, 432.81, 429.347, 425.884, 422.768, 419.651, 416.188, 412.725, 409.262, 405.799, 401.99, 397.488, 392.64, 387.445, 381.558, 376.284};
+    // std::vector<G4double> bgoEnergyBin(bgoWaveLengthBin.size());
+    // std::vector<G4double> bgoScintillationComponent1 = {0.107, 0.127, 0.156, 0.186, 0.218, 0.253, 0.289, 0.325, 0.363, 0.402, 0.442, 0.481, 0.521, 0.56, 0.6, 0.641, 0.68, 0.721, 0.758, 0.798, 0.839, 0.875, 0.899, 0.909, 0.9, 0.875, 0.839, 0.8, 0.76, 0.721, 0.68, 0.635, 0.592, 0.552, 0.509, 0.469, 0.428, 0.383, 0.339, 0.296, 0.257, 0.217, 0.176, 0.136, 0.099, 0.059, 0.026};
+    // std::transform(bgoWaveLengthBin.begin(), bgoWaveLengthBin.end(), bgoEnergyBin.begin(),
+    //                [](auto val) { return h_Planck * c_light / (val * nm / mm); });
 
-    const auto bgoPropertiesTable = new G4MaterialPropertiesTable();
-    bgoPropertiesTable->AddProperty("RINDEX", fEnergyPair, {2.15, 2.15});
-    bgoPropertiesTable->AddProperty("ABSLENGTH", fEnergyPair, {40 * cm, 40 * cm});
-    bgoPropertiesTable->AddProperty("SCINTILLATIONCOMPONENT1", bgoEnergyBin, bgoScintillationComponent1);
-    bgoPropertiesTable->AddConstProperty("SCINTILLATIONYIELD", 10000. / MeV);
-    bgoPropertiesTable->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 300 * ns);
-    bgoPropertiesTable->AddConstProperty("RESOLUTIONSCALE", 1.0);
-    bgo->SetMaterialPropertiesTable(bgoPropertiesTable);
-
-    std::vector<G4double> xeEnergyBin = {7.0 * eV, 7.07 * eV, 7.14 * eV};
-    const auto xePropertiesTable = new G4MaterialPropertiesTable();
-    xePropertiesTable->AddProperty("RINDEX", xeEnergyBin, {1.59, 1.57, 1.54});
-    xePropertiesTable->AddProperty("ABSLENGTH", xeEnergyBin, {35. * cm, 35. * cm, 35. * cm});
-    xePropertiesTable->AddProperty("SCINTILLATIONCOMPONENT1", xeEnergyBin, {0.1, 1.0, 0.1});
-    xePropertiesTable->AddProperty("SCINTILLATIONCOMPONENT2", xeEnergyBin, {0.1, 1.0, 0.1});
-    xePropertiesTable->AddConstProperty("SCINTILLATIONYIELD", 45000. / MeV);
-    xePropertiesTable->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 20 * ns);
-    xePropertiesTable->AddConstProperty("SCINTILLATIONTIMECONSTANT2", 45 * ns);
-    xePropertiesTable->AddConstProperty("RESOLUTIONSCALE", 1.0);
-    liquidXe->SetMaterialPropertiesTable(xePropertiesTable);
-
-    // Plastic Scintillators
-
-    std::vector<G4double> ej200WaveLengthBin = {499.837, 497.667, 495.162, 492.656, 490.15,
-                                                487.645, 485.139, 482.633, 480.128, 477.622,
-                                                475.116, 472.611, 470.105, 467.6, 465.094,
-                                                462.588, 460.083, 457.577, 455.071, 452.566,
-                                                450.06, 447.554, 445.205, 443.013, 440.977,
-                                                439.254, 437.532, 435.652, 433.617, 431.268,
-                                                429.2, 426.569, 424.064, 422.644, 421.871,
-                                                420.587, 419.71, 419.052, 418.395, 417.518,
-                                                416.86, 416.202, 415.294, 414.386, 413.697,
-                                                412.788, 411.849, 410.752, 409.813, 408.717,
-                                                407.464, 406.211, 404.802, 402.979, 400.26,
-                                                397.754};
-    std::vector<G4double> ej200EnergyBin(ej200WaveLengthBin.size());
-    std::vector<G4double> ej200ScintillationComponent1 = {0.06, 0.063, 0.074, 0.086, 0.099,
-                                                          0.112, 0.13, 0.15, 0.173, 0.198,
-                                                          0.228, 0.263, 0.306, 0.348, 0.382,
-                                                          0.41, 0.431, 0.455, 0.483, 0.514,
-                                                          0.55, 0.592, 0.637, 0.685, 0.731,
-                                                          0.773, 0.816, 0.86, 0.9, 0.939,
-                                                          0.979, 0.998, 0.997, 0.979, 0.951,
-                                                          0.898, 0.846, 0.8, 0.754, 0.698,
-                                                          0.651, 0.602, 0.545, 0.488, 0.438,
-                                                          0.385, 0.339, 0.292, 0.25, 0.207,
-                                                          0.161, 0.117, 0.072, 0.026, 0.011,
-                                                          0.003};
-
-    std::transform(ej200WaveLengthBin.begin(), ej200WaveLengthBin.end(), ej200EnergyBin.begin(),
-                   [](auto val) { return h_Planck * c_light / (val * nm / mm); });
-
-    const auto plasticPropertiesTable = new G4MaterialPropertiesTable();
-    plasticPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.58, 1.58});
-    plasticPropertiesTable->AddProperty("ABSLENGTH", fEnergyPair, {40 * cm, 40 * cm});
-    plasticPropertiesTable->AddProperty("SCINTILLATIONCOMPONENT1", ej200EnergyBin, ej200ScintillationComponent1);
-    plasticPropertiesTable->AddConstProperty("SCINTILLATIONYIELD", 20000. / MeV);
-    plasticPropertiesTable->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 3 * ns);
-    plasticPropertiesTable->AddConstProperty("RESOLUTIONSCALE", 1.0);
-    plastic->SetMaterialPropertiesTable(plasticPropertiesTable);
+    // const auto bgoPropertiesTable = new G4MaterialPropertiesTable();
+    // bgoPropertiesTable->AddProperty("RINDEX", fEnergyPair, {2.15, 2.15});
+    // bgoPropertiesTable->AddProperty("ABSLENGTH", fEnergyPair, {40 * cm, 40 * cm});
+    // bgoPropertiesTable->AddProperty("SCINTILLATIONCOMPONENT1", bgoEnergyBin, bgoScintillationComponent1);
+    // bgoPropertiesTable->AddConstProperty("SCINTILLATIONYIELD", 10000. / MeV);
+    // bgoPropertiesTable->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 300 * ns);
+    // bgoPropertiesTable->AddConstProperty("RESOLUTIONSCALE", 1.0);
+    // bgo->SetMaterialPropertiesTable(bgoPropertiesTable);
 
     //============================================ Surface ============================================
 
@@ -353,17 +286,17 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     /////////////////////////////////////////////
 
     const auto worldSize = 2 * m;
-    const auto worldS = new G4Box("world", 0.5 * worldSize, 0.5 * worldSize, 0.5 * worldSize);
-    const auto worldLV = new G4LogicalVolume(worldS, air, "World");
-    const auto worldPV = new G4PVPlacement(nullptr, {}, worldLV, "World", nullptr, false, 0, true);
+    const auto solidWorld = new G4Box("world", 0.5 * worldSize, 0.5 * worldSize, 0.5 * worldSize);
+    const auto logicalWorld = new G4LogicalVolume(solidWorld, air, "World");
+    const auto physicalWorld = new G4PVPlacement(nullptr, {}, logicalWorld, "World", nullptr, false, 0, true);
 
     const auto fCrystalWidth = 3 * cm;
     const auto fCrystalLength = 8 * cm;
 
     const auto fReflectorThickness = 5 * cm;
 
-    const auto fPMTRadius = 19 * mm;
-    const auto fPMTCathodeRadius = 17 * mm;
+    const auto fPMTDiameter = 38 * mm;
+    const auto fPMTCathodeDiameter = 34 * mm;
 
     const auto fCouplerThickness = 0.1 * mm;
     const auto fWindowThickness = 1 * mm;
@@ -395,61 +328,60 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
             return G4Translate3D{crystalTail + G4ThreeVector(0, 0, transformDistance)};
         };
 
-    // const auto crystalSV = new G4ExtrudedSolid("Extruded", polygon, fCrystalLength / 2, offsetA, scaleA, offsetB, scaleB);
+    // const auto solidCrystal = new G4ExtrudedSolid("Extruded", polygon, fCrystalLength / 2, offsetA, scaleA, offsetB, scaleB);
 
-    const auto crystalSV = new G4Box("crystal", fCrystalWidth / 2, fCrystalWidth / 2, fCrystalLength / 2);
+    const auto solidCrystal = new G4Box("crystal", fCrystalWidth / 2, fCrystalWidth / 2, fCrystalLength / 2);
     //========================================== CsI(Tl) ============================================
-    // const auto crystalLV = new G4LogicalVolume{crystalSV, csI, "crystal"};
+    // const auto logicalCrystal = new G4LogicalVolume{solidCrystal, csI, "crystal"};
     //========================================== LaBr3(Ce) ==========================================
-    // const auto crystalLV = new G4LogicalVolume{crystalSV, labr, "crystal"};
+    // const auto logicalCrystal = new G4LogicalVolume{solidCrystal, labr, "crystal"};
     //========================================== LYSO(Ce) ===========================================
-    // const auto crystalLV = new G4LogicalVolume{crystalSV, lyso, "crystal"};
+    // const auto logicalCrystal = new G4LogicalVolume{solidCrystal, lyso, "crystal"};
     //===============================================================================================
-    const auto crystalLV = new G4LogicalVolume{crystalSV, liquidXe, "crystal"};
-    const auto crystalPV = new G4PVPlacement(G4Transform3D{}, crystalLV, "crystal", worldLV, false, 0, true);
+    const auto logicalCrystal = new G4LogicalVolume{solidCrystal, csI, "crystal"};
+    const auto physicalCrystal = new G4PVPlacement(G4Transform3D{}, logicalCrystal, "crystal", logicalWorld, false, 0, true);
 
-    const auto reflectorSV = new G4Box("reflector", fCrystalWidth / 2 + fReflectorThickness, fCrystalWidth / 2 + fReflectorThickness, fCrystalLength / 2 + fReflectorThickness);
-    const auto cuttedReflector = new G4SubtractionSolid("reflector", reflectorSV, crystalSV, G4Translate3D(0, 0, fReflectorThickness));
-    const auto reflectorLV = new G4LogicalVolume{cuttedReflector, aluminum, "reflector"};
-    const auto reflectorPV = new G4PVPlacement{G4Translate3D(0, 0, -fReflectorThickness), reflectorLV, "reflector", worldLV, false, 0, true};
+    const auto solidReflector = new G4Box("reflector", fCrystalWidth / 2 + fReflectorThickness, fCrystalWidth / 2 + fReflectorThickness, fCrystalLength / 2 + fReflectorThickness);
+    const auto cuttedReflector = new G4SubtractionSolid("reflector", solidReflector, solidCrystal, G4Translate3D(0, 0, fReflectorThickness));
+    const auto logicalReflector = new G4LogicalVolume{cuttedReflector, pet, "reflector"};
+    const auto physicalReflector = new G4PVPlacement{G4Translate3D(0, 0, -fReflectorThickness), logicalReflector, "reflector", logicalWorld, false, 0, true};
 
-    const auto couplerSV = new G4Tubs("coupler", 0, fPMTRadius, fCouplerThickness / 2, 0, 2 * pi);
-    const auto couplerLV = new G4LogicalVolume(couplerSV, siliconeOil, "CrystalCoupler");
-    const auto couplerPV = new G4PVPlacement(Transform(fCouplerThickness / 2),
-                                             couplerLV, "CrystalCoupler", worldLV, false, 0, true);
+    const auto solidCoupler = new G4Tubs("coupler", 0, fPMTDiameter / 2, fCouplerThickness / 2, 0, 2 * pi);
+    const auto logicalCoupler = new G4LogicalVolume(solidCoupler, siliconeOil, "CrystalCoupler");
+    const auto physicalCoupler = new G4PVPlacement(Transform(fCouplerThickness / 2),
+                                                   logicalCoupler, "CrystalCoupler", logicalWorld, false, 0, true);
 
-    const auto windowSV = new G4Tubs("window", 0, fPMTRadius, fWindowThickness / 2, 0, 2 * pi);
-    const auto windowLV = new G4LogicalVolume(windowSV, glass, "window");
-    const auto windowPV = new G4PVPlacement{Transform(fCouplerThickness + fWindowThickness / 2),
-                                            windowLV, "window", worldLV, false, 0, true};
+    const auto solidWindow = new G4Tubs("window", 0, fPMTDiameter / 2, fWindowThickness / 2, 0, 2 * pi);
+    const auto logicalWindow = new G4LogicalVolume(solidWindow, glass, "window");
+    const auto physicalWindow = new G4PVPlacement{Transform(fCouplerThickness + fWindowThickness / 2),
+                                                  logicalWindow, "window", logicalWorld, false, 0, true};
 
-    const auto sipmSV = new G4Tubs("sipm", 0, fPMTCathodeRadius, fCathodeThickness / 2, 0, 2 * pi);
-    const auto sipmLV = new G4LogicalVolume(sipmSV, silicon, "sipm");
+    const auto solidCathode = new G4Tubs("cathode", 0, fPMTCathodeDiameter / 2, fCathodeThickness / 2, 0, 2 * pi);
+    const auto logicalCathode = new G4LogicalVolume(solidCathode, bialkali, "cathode");
     new G4PVPlacement(Transform(fCouplerThickness + fWindowThickness + fCathodeThickness / 2),
-                      sipmLV, "sipm", worldLV, false, 0, true);
+                      logicalCathode, "cathode", logicalWorld, false, 0, true);
 
     // Define Surface
 
-    // const auto rfSurface = new G4OpticalSurface("reflector", LUT, polishedvm2000glue, dielectric_LUT);
     const auto rfSurface = new G4OpticalSurface("reflector", unified, polished, dielectric_metal);
     rfSurface->SetMaterialPropertiesTable(rfSurfacePropertiesTable);
-    new G4LogicalBorderSurface("rfSurface", crystalPV, reflectorPV, rfSurface);
+    new G4LogicalBorderSurface("rfSurface", physicalCrystal, physicalReflector, rfSurface);
 
     const auto couplerSurface = new G4OpticalSurface("coupler", unified, polished, dielectric_dielectric);
     couplerSurface->SetMaterialPropertiesTable(couplerSurfacePropertiesTable);
-    new G4LogicalBorderSurface("couplerSurface", crystalPV, couplerPV, couplerSurface);
+    new G4LogicalBorderSurface("couplerSurface", physicalCrystal, physicalCoupler, couplerSurface);
 
     const auto airPaintSurface = new G4OpticalSurface("Paint", unified, polished, dielectric_metal);
     airPaintSurface->SetMaterialPropertiesTable(airPaintSurfacePropertiesTable);
-    new G4LogicalBorderSurface("AirPaintSurface", reflectorPV, crystalPV, airPaintSurface);
+    new G4LogicalBorderSurface("AirPaintSurface", physicalReflector, physicalCrystal, airPaintSurface);
 
     const auto cathodeSurface = new G4OpticalSurface("Cathode", unified, polished, dielectric_metal);
     cathodeSurface->SetMaterialPropertiesTable(cathodeSurfacePropertiesTable);
-    new G4LogicalSkinSurface("cathodeSkinSurface", sipmLV, cathodeSurface);
+    new G4LogicalSkinSurface("cathodeSkinSurface", logicalCathode, cathodeSurface);
 
     ++cellNumber;
 
-    return worldPV;
+    return physicalWorld;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
