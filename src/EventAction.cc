@@ -24,8 +24,8 @@ void EventAction::EndOfEventAction(const G4Event* event) {
     auto scintillatorHCid = G4SDManager::GetSDMpointer()->GetCollectionID("ScintillatorHitsCollection");
     auto scintHC = static_cast<ScintillatorHC*>(event->GetHCofThisEvent()->GetHC(scintillatorHCid));
 
-    auto sipmHCid = G4SDManager::GetSDMpointer()->GetCollectionID("SiPMHitsCollection");
-    auto sipmHC = static_cast<PhotonHC*>(event->GetHCofThisEvent()->GetHC(sipmHCid));
+    auto photonHCid = G4SDManager::GetSDMpointer()->GetCollectionID("PhotonHitsCollection");
+    auto photonHC = static_cast<PhotonHC*>(event->GetHCofThisEvent()->GetHC(photonHCid));
 
     auto analysisManager = G4AnalysisManager::Instance();
 
@@ -39,18 +39,18 @@ void EventAction::EndOfEventAction(const G4Event* event) {
         if (energyDeposit > 0.) {
             analysisManager->FillNtupleIColumn(0, 0, i);
             analysisManager->FillNtupleDColumn(0, 1, energyDeposit);
-            analysisManager->FillNtupleIColumn(0, 2, sipmHC->entries());
+            analysisManager->FillNtupleIColumn(0, 2, photonHC->entries());
             analysisManager->AddNtupleRow(0);
         }
     }
 
-    for (long unsigned int j = 0; j < sipmHC->entries(); j++) {
+    for (long unsigned int j = 0; j < photonHC->entries(); j++) {
 
-        auto sipmHit = (*sipmHC)[j];
+        auto photonHit = (*photonHC)[j];
 
         analysisManager->FillNtupleIColumn(1, 0, eventID);
-        analysisManager->FillNtupleIColumn(1, 1, sipmHit->GetCopyNo());
-        analysisManager->FillNtupleDColumn(1, 2, sipmHit->GetGlobalTime());
+        analysisManager->FillNtupleIColumn(1, 1, photonHit->GetCopyNo());
+        analysisManager->FillNtupleDColumn(1, 2, photonHit->GetGlobalTime());
         analysisManager->AddNtupleRow(1);
     }
 }

@@ -24,14 +24,14 @@ RunAction::RunAction() :
     // analysisManager->OpenFile("test");
 
     analysisManager->CreateNtuple("cellHit", "result");
-    analysisManager->CreateNtupleIColumn("cellID");
+    analysisManager->CreateNtupleIColumn("unitID");
     analysisManager->CreateNtupleDColumn("energyDeposit");
     analysisManager->CreateNtupleIColumn("nPhotons");
     analysisManager->FinishNtuple();
 
     analysisManager->CreateNtuple("pulse", "result");
     analysisManager->CreateNtupleIColumn("eventID");
-    analysisManager->CreateNtupleIColumn("sipmID");
+    analysisManager->CreateNtupleIColumn("unitID");
     analysisManager->CreateNtupleDColumn("nToF");
     analysisManager->FinishNtuple();
 }

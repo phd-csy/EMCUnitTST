@@ -392,7 +392,7 @@ void DetectorConstruction::ConstructSDandField() {
     G4SDManager::GetSDMpointer()->AddNewDetector(scintSD);
     SetSensitiveDetector("crystal", scintSD, true);
 
-    auto sipmSD = new PhotonSD("PhotonSD", "SiPMHitsCollection");
-    G4SDManager::GetSDMpointer()->AddNewDetector(sipmSD);
-    SetSensitiveDetector("cathode", sipmSD, true);
+    auto photonSD = new PhotonSD("PhotonSD", "PhotonHitsCollection");
+    G4SDManager::GetSDMpointer()->AddNewDetector(photonSD);
+    SetSensitiveDetector("cathode", photonSD, true);
 }
