@@ -293,7 +293,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto fCrystalWidth = 3 * cm;
     const auto fCrystalLength = 8 * cm;
 
-    const auto fReflectorThickness = 5 * cm;
+    const auto fReflectorThickness = 100 * um;
 
     const auto fPMTDiameter = 38 * mm;
     const auto fPMTCathodeDiameter = 34 * mm;
@@ -394,5 +394,5 @@ void DetectorConstruction::ConstructSDandField() {
 
     auto sipmSD = new SiPMSD("SiPMSD", "SiPMHitsCollection");
     G4SDManager::GetSDMpointer()->AddNewDetector(sipmSD);
-    SetSensitiveDetector("sipm", sipmSD, true);
+    SetSensitiveDetector("cathode", sipmSD, true);
 }
