@@ -5,10 +5,10 @@
 #include "G4Run.hh"
 #include "G4RunManager.hh"
 #include "G4Timer.hh"
+#include "PhotonHit.hh"
+#include "PhotonSD.hh"
 #include "ScintillatorHit.hh"
 #include "ScintillatorSD.hh"
-#include "SiPMHit.hh"
-#include "SiPMSD.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

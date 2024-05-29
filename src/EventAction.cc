@@ -9,10 +9,10 @@
 #include "G4SDManager.hh"
 #include "G4Trajectory.hh"
 #include "G4TrajectoryContainer.hh"
+#include "PhotonHit.hh"
+#include "PhotonSD.hh"
 #include "ScintillatorHit.hh"
 #include "ScintillatorSD.hh"
-#include "SiPMHit.hh"
-#include "SiPMSD.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -25,7 +25,7 @@ void EventAction::EndOfEventAction(const G4Event* event) {
     auto scintHC = static_cast<ScintillatorHC*>(event->GetHCofThisEvent()->GetHC(scintillatorHCid));
 
     auto sipmHCid = G4SDManager::GetSDMpointer()->GetCollectionID("SiPMHitsCollection");
-    auto sipmHC = static_cast<SiPMHC*>(event->GetHCofThisEvent()->GetHC(sipmHCid));
+    auto sipmHC = static_cast<PhotonHC*>(event->GetHCofThisEvent()->GetHC(sipmHCid));
 
     auto analysisManager = G4AnalysisManager::Instance();
 

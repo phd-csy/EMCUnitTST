@@ -1,10 +1,10 @@
-#ifndef SIPMHIT_HH
-#define SIPMHIT_HH
+#ifndef PHOTONHIT_HH
+#define PHOTONHIT_HH
 
 #include "G4THitsCollection.hh"
 #include "G4VHit.hh"
 
-class SiPMHit : public G4VHit {
+class PhotonHit : public G4VHit {
 public:
     void SetGlobalTime(G4double time) { globalTime = time; }
     G4double GetGlobalTime() const { return globalTime; }
@@ -17,6 +17,6 @@ private:
     G4int copyNo;
 };
 
-using SiPMHC = G4THitsCollection<SiPMHit>;
+using PhotonHC = G4THitsCollection<PhotonHit>;
 
 #endif

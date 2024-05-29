@@ -1,30 +1,30 @@
-#include "SiPMSD.hh"
+#include "PhotonSD.hh"
 
 #include "DetectorConstruction.hh"
 #include "G4OpBoundaryProcess.hh"
 #include "G4RunManager.hh"
-#include "SiPMHit.hh"
+#include "PhotonHit.hh"
 
-SiPMSD::SiPMSD(const G4String& sdname, const G4String& hcName) :
+PhotonSD::PhotonSD(const G4String& sdname, const G4String& hcName) :
     G4VSensitiveDetector(sdname) { collectionName.insert(hcName); }
 
-SiPMSD::~SiPMSD() {}
+PhotonSD::~PhotonSD() {}
 
-void SiPMSD::Initialize(G4HCofThisEvent* hcOfThisEvent) {
+void PhotonSD::Initialize(G4HCofThisEvent* hcOfThisEvent) {
     G4int cellNumberTotal = static_cast<const DetectorConstruction*>(G4RunManager::GetRunManager()->GetUserDetectorConstruction())->GetCellNumber();
 
-    hc = new SiPMHC(SensitiveDetectorName, collectionName[0]);
+    hc = new PhotonHC(SensitiveDetectorName, collectionName[0]);
     auto hcID = G4SDManager::GetSDMpointer()->GetCollectionID(collectionName[0]);
     hcOfThisEvent->AddHitsCollection(hcID, hc);
 }
 
-G4bool SiPMSD::ProcessHits(G4Step* step, G4TouchableHistory*) {
+G4bool PhotonSD::ProcessHits(G4Step* step, G4TouchableHistory*) {
     auto particleDefinition = step->GetTrack()->GetDefinition();
     if (particleDefinition == G4OpticalPhoton::Definition()) {
 
         step->GetTrack()->SetTrackStatus(fStopAndKill);
 
-        auto hit = new SiPMHit;
+        auto hit = new PhotonHit;
         auto globalTime = step->GetPostStepPoint()->GetGlobalTime();
         auto copyNo = step->GetTrack()->GetVolume()->GetCopyNo();
         hit->SetGlobalTime(globalTime);
@@ -36,4 +36,4 @@ G4bool SiPMSD::ProcessHits(G4Step* step, G4TouchableHistory*) {
     return false;
 }
 
-void SiPMSD::EndOfEvent(G4HCofThisEvent*) {}
+void PhotonSD::EndOfEvent(G4HCofThisEvent*) {}

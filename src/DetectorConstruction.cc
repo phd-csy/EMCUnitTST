@@ -32,10 +32,10 @@
 #include "G4UnionSolid.hh"
 #include "G4UserLimits.hh"
 #include "G4VisAttributes.hh"
+#include "PhotonHit.hh"
+#include "PhotonSD.hh"
 #include "ScintillatorHit.hh"
 #include "ScintillatorSD.hh"
-#include "SiPMHit.hh"
-#include "SiPMSD.hh"
 
 #include <algorithm>
 #include <cmath>
@@ -392,7 +392,7 @@ void DetectorConstruction::ConstructSDandField() {
     G4SDManager::GetSDMpointer()->AddNewDetector(scintSD);
     SetSensitiveDetector("crystal", scintSD, true);
 
-    auto sipmSD = new SiPMSD("SiPMSD", "SiPMHitsCollection");
+    auto sipmSD = new PhotonSD("PhotonSD", "SiPMHitsCollection");
     G4SDManager::GetSDMpointer()->AddNewDetector(sipmSD);
     SetSensitiveDetector("cathode", sipmSD, true);
 }
