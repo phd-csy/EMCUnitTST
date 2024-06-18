@@ -85,6 +85,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto antimonyElement = nistManager->FindOrBuildElement("Sb");
     const auto bismuthElement = nistManager->FindOrBuildElement("Bi");
 
+    const auto fluorineElement = nistManager->FindOrBuildElement("F");
+
     const auto pet = new G4Material("PET", 1.38 * g / cm3, 3, kStateSolid);
     pet->AddElement(hydrogenElement, 0.041962);
     pet->AddElement(carbonElement, 0.625008);
@@ -132,6 +134,20 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     // lyso->AddElement(lutetiumElement, 0.730562);
     // lyso->AddElement(cesiumElement, 0.012379);
 
+    const auto pvdf = new G4Material("PVDF", 1.43 * g / cm3, 3, kStateSolid);
+    pvdf->AddElement(carbonElement, 2);
+    pvdf->AddElement(hydrogenElement, 2);
+    pvdf->AddElement(fluorineElement, 2);
+
+    const auto pmma = new G4Material("PMMA", 1.19 * g / cm3, 3, kStateSolid);
+    pmma->AddElement(carbonElement, 5);
+    pmma->AddElement(hydrogenElement, 8);
+    pmma->AddElement(oxygenElement, 2);
+
+    const auto ps = new G4Material("PS", 1.05 * g / cm3, 2, kStateSolid);
+    ps->AddElement(carbonElement, 1);
+    ps->AddElement(hydrogenElement, 1);
+
     //////////////////////////////////////////////////
     // Construct Material Optical Properties Tables
     //////////////////////////////////////////////////
@@ -140,6 +156,14 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     constexpr auto fLambda_max = 700 * nm;
     std::vector<G4double> fEnergyPair = {h_Planck * c_light / fLambda_max,
                                          h_Planck * c_light / fLambda_min};
+
+    const auto outerPropertyTable = new G4MaterialPropertiesTable();
+    outerPropertyTable->AddProperty("RINDEX", fEnergyPair, {1.42, 1.42});
+    pvdf->SetMaterialPropertiesTable(outerPropertyTable);
+
+    const auto innerPropertyTable = new G4MaterialPropertiesTable();
+    innerPropertyTable->AddProperty("RINDEX", fEnergyPair, {1.49, 1.49});
+    pmma->SetMaterialPropertiesTable(innerPropertyTable);
 
     //============================================ Air ================================================
 
@@ -271,13 +295,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
                    [](auto val) { return h_Planck * c_light / (val * nm / mm); });
 
     const auto plasticPropertiesTable = new G4MaterialPropertiesTable();
-    plasticPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.58, 1.58});
-    plasticPropertiesTable->AddProperty("ABSLENGTH", fEnergyPair, {40 * cm, 40 * cm});
+    plasticPropertiesTable->AddProperty("RINDEX", fEnergyPair, {1.59, 1.59});
+    plasticPropertiesTable->AddProperty("ABSLENGTH", fEnergyPair, {400 * cm, 400 * cm});
     plasticPropertiesTable->AddProperty("SCINTILLATIONCOMPONENT1", ej200EnergyBin, ej200ScintillationComponent1);
-    plasticPropertiesTable->AddConstProperty("SCINTILLATIONYIELD", 20000. / MeV);
+    plasticPropertiesTable->AddConstProperty("SCINTILLATIONYIELD", 8000. / MeV);
     plasticPropertiesTable->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 3 * ns);
     plasticPropertiesTable->AddConstProperty("RESOLUTIONSCALE", 1.0);
-    plastic->SetMaterialPropertiesTable(plasticPropertiesTable);
+    ps->SetMaterialPropertiesTable(plasticPropertiesTable);
 
     //============================================ Surface ============================================
 
@@ -325,6 +349,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto fSiPMWidth = 3 * mm;
     const auto fSiPMThickness = 0.1 * mm;
 
+    const auto fibreLength{300 * mm};
+    const auto fibreDiameter{500 * um};
+    const auto outerThickness{0.02 * fibreDiameter};
+    const auto innerThickness{0.02 * fibreDiameter};
+    const auto coreThickness{fibreDiameter - outerThickness - innerThickness};
+
     // const auto nsect = 5;
     // const auto fCrystalLength = 146.73 * mm;
     // const auto fPolygonCrystalWidth = 20.522 * mm;
@@ -347,27 +377,39 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     // const auto fPMTCathodeRadius = 23 * mm;
 
     const auto Transform =
-        [&fCrystalLength, crystalTail = G4ThreeVector(0, 0, fCrystalLength / 2)](double transformDistance) {
+        [&fCrystalLength, crystalTail = G4ThreeVector(0, 0, fibreLength / 2)](double transformDistance) {
             return G4Translate3D{crystalTail + G4ThreeVector(0, 0, transformDistance)};
         };
 
     // const auto crystalSV = new G4ExtrudedSolid("Extruded", polygon, fCrystalLength / 2, offsetA, scaleA, offsetB, scaleB);
 
-    const auto crystalSV = new G4Box("crystal", fCrystalWidth / 2, fCrystalWidth / 2, fCrystalLength / 2);
+    // const auto crystalSV = new G4Box("crystal", fCrystalWidth / 2, fCrystalWidth / 2, fCrystalLength / 2);
     //========================================== CsI(Tl) ============================================
-    const auto crystalLV = new G4LogicalVolume{crystalSV, csI, "crystal"};
+    // const auto crystalLV = new G4LogicalVolume{crystalSV, csI, "crystal"};
     //========================================== LaBr3(Ce) ==========================================
     // const auto crystalLV = new G4LogicalVolume{crystalSV, labr, "crystal"};
     //========================================== LYSO(Ce) ===========================================
     // const auto crystalLV = new G4LogicalVolume{crystalSV, lyso, "crystal"};
     //===============================================================================================
     // const auto crystalLV = new G4LogicalVolume{crystalSV, bgo, "crystal"};
-    const auto crystalPV = new G4PVPlacement(G4Transform3D{}, crystalLV, "crystal", worldLV, false, 0, true);
+    // const auto crystalPV = new G4PVPlacement(G4Transform3D{}, crystalLV, "crystal", worldLV, false, 0, true);
 
-    const auto reflectorSV = new G4Box("reflector", fCrystalWidth / 2 + fReflectorThickness, fCrystalWidth / 2 + fReflectorThickness, fCrystalLength / 2 + fReflectorThickness);
-    const auto cuttedReflector = new G4SubtractionSolid("reflector", reflectorSV, crystalSV, G4Translate3D(0, 0, fReflectorThickness));
-    const auto reflectorLV = new G4LogicalVolume{cuttedReflector, pet, "reflector"};
-    const auto reflectorPV = new G4PVPlacement{G4Translate3D(0, 0, -fReflectorThickness), reflectorLV, "reflector", worldLV, false, 0, true};
+    // const auto reflectorSV = new G4Box("reflector", fCrystalWidth / 2 + fReflectorThickness, fCrystalWidth / 2 + fReflectorThickness, fCrystalLength / 2 + fReflectorThickness);
+    // const auto cuttedReflector = new G4SubtractionSolid("reflector", reflectorSV, crystalSV, G4Translate3D(0, 0, fReflectorThickness));
+    // const auto reflectorLV = new G4LogicalVolume{cuttedReflector, pet, "reflector"};
+    // const auto reflectorPV = new G4PVPlacement{G4Translate3D(0, 0, -fReflectorThickness), reflectorLV, "reflector", worldLV, false, 0, true};
+
+    const auto solidCore = new G4Tubs("core", 0, coreThickness / 2, fibreLength / 2, 0, 2 * pi);
+    const auto logicalCore = new G4LogicalVolume(solidCore, ps, "core");
+    new G4PVPlacement(G4Transform3D{}, logicalCore, "core", worldLV, false, 0, true);
+
+    const auto solidInner = new G4Tubs("inners", coreThickness / 2, coreThickness / 2 + innerThickness, fibreLength / 2, 0, 2 * pi);
+    const auto logicalInner = new G4LogicalVolume(solidInner, pmma, "inner");
+    new G4PVPlacement(G4Transform3D{}, logicalInner, "inner", worldLV, false, 0, true);
+
+    const auto solidOuter = new G4Tubs("outers", coreThickness / 2 + innerThickness, coreThickness / 2 + innerThickness + outerThickness, fibreLength / 2, 0, 2 * pi);
+    const auto logicalOuter = new G4LogicalVolume(solidOuter, pvdf, "outer");
+    new G4PVPlacement(G4Transform3D{}, logicalOuter, "outer", worldLV, false, 0, true);
 
     const auto solidCoupler = new G4Box("coupler", fCrystalWidth / 2, fCrystalWidth / 2, fCouplerThickness / 2);
     const auto logicalCoupler = new G4LogicalVolume(solidCoupler, siliconeOil, "CrystalCoupler");
@@ -381,31 +423,33 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
 
     const auto solidSipm = new G4Box("sipm", fSiPMWidth / 2, fSiPMWidth / 2, fSiPMThickness / 2);
     const auto logicalSipm = new G4LogicalVolume(solidSipm, silicon, "sipm");
-    int n = 4;
-    new G4PVPlacement(0, G4ThreeVector((n - 0.5) * (fSiPMWidth + 0.2 * mm), (n - 0.5) * (fSiPMWidth + 0.2 * mm), fCrystalLength / 2 + fCouplerThickness + fWindowThickness + fSiPMThickness / 2),
-                      logicalSipm, "sipm", worldLV, false, 0, true);
+    const auto physicalSipm = new G4PVPlacement{Transform(fCouplerThickness + fWindowThickness + fSiPMThickness / 2),
+                                                logicalSipm, "sipm", worldLV, false, 0, true};
+    // int n = 4;
+    // new G4PVPlacement(0, G4ThreeVector((n - 0.5) * (fSiPMWidth + 0.2 * mm), (n - 0.5) * (fSiPMWidth + 0.2 * mm), fCrystalLength / 2 + fCouplerThickness + fWindowThickness + fSiPMThickness / 2),
+    //                   logicalSipm, "sipm", worldLV, false, 0, true);
 
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 8; j++) {
-            new G4PVPlacement(0, G4ThreeVector((n - 0.5) * (fSiPMWidth + 0.2 * mm) - i * (fSiPMWidth + 0.2 * mm), (n - 0.5) * (fSiPMWidth + 0.2 * mm) - j * (fSiPMWidth + 0.2 * mm), fCrystalLength / 2 + fCouplerThickness + fWindowThickness + fSiPMThickness / 2),
-                              logicalSipm, "sipm", worldLV, false, 0, true);
-        }
-    }
+    // for (int i = 0; i < 8; i++) {
+    //     for (int j = 0; j < 8; j++) {
+    //         new G4PVPlacement(0, G4ThreeVector((n - 0.5) * (fSiPMWidth + 0.2 * mm) - i * (fSiPMWidth + 0.2 * mm), (n - 0.5) * (fSiPMWidth + 0.2 * mm) - j * (fSiPMWidth + 0.2 * mm), fCrystalLength / 2 + fCouplerThickness + fWindowThickness + fSiPMThickness / 2),
+    //                           logicalSipm, "sipm", worldLV, false, 0, true);
+    //     }
+    // }
 
     // Define Surface
 
     // const auto rfSurface = new G4OpticalSurface("reflector", LUT, polishedvm2000glue, dielectric_LUT);
-    const auto rfSurface = new G4OpticalSurface("reflector", unified, polished, dielectric_metal);
-    rfSurface->SetMaterialPropertiesTable(rfSurfacePropertiesTable);
-    new G4LogicalBorderSurface("rfSurface", crystalPV, reflectorPV, rfSurface);
+    // const auto rfSurface = new G4OpticalSurface("reflector", unified, polished, dielectric_metal);
+    // rfSurface->SetMaterialPropertiesTable(rfSurfacePropertiesTable);
+    // new G4LogicalBorderSurface("rfSurface", crystalPV, reflectorPV, rfSurface);
 
-    const auto couplerSurface = new G4OpticalSurface("coupler", unified, polished, dielectric_dielectric);
-    couplerSurface->SetMaterialPropertiesTable(couplerSurfacePropertiesTable);
-    new G4LogicalBorderSurface("couplerSurface", crystalPV, physicalCoupler, couplerSurface);
+    // const auto couplerSurface = new G4OpticalSurface("coupler", unified, polished, dielectric_dielectric);
+    // couplerSurface->SetMaterialPropertiesTable(couplerSurfacePropertiesTable);
+    // new G4LogicalBorderSurface("couplerSurface", crystalPV, physicalCoupler, couplerSurface);
 
-    const auto airPaintSurface = new G4OpticalSurface("Paint", unified, polished, dielectric_metal);
-    airPaintSurface->SetMaterialPropertiesTable(airPaintSurfacePropertiesTable);
-    new G4LogicalBorderSurface("AirPaintSurface", reflectorPV, crystalPV, airPaintSurface);
+    // const auto airPaintSurface = new G4OpticalSurface("Paint", unified, polished, dielectric_metal);
+    // airPaintSurface->SetMaterialPropertiesTable(airPaintSurfacePropertiesTable);
+    // new G4LogicalBorderSurface("AirPaintSurface", reflectorPV, crystalPV, airPaintSurface);
 
     const auto cathodeSurface = new G4OpticalSurface("Cathode", unified, polished, dielectric_metal);
     cathodeSurface->SetMaterialPropertiesTable(cathodeSurfacePropertiesTable);
@@ -422,7 +466,7 @@ void DetectorConstruction::ConstructSDandField() {
     // Sensitive detectors
     auto scintSD = new ScintillatorSD("ScintillatorSD", "ScintillatorHitsCollection");
     G4SDManager::GetSDMpointer()->AddNewDetector(scintSD);
-    SetSensitiveDetector("crystal", scintSD, true);
+    SetSensitiveDetector("core", scintSD, true);
 
     auto sipmSD = new SiPMSD("SiPMSD", "SiPMHitsCollection");
     G4SDManager::GetSDMpointer()->AddNewDetector(sipmSD);

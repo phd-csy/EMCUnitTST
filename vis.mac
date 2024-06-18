@@ -87,11 +87,11 @@
 /vis/scene/add/trajectories smooth #rich
 /vis/scene/add/hits
 
-/gps/particle gamma
-/gps/ene/mono 0.511 MeV
-/gps/pos/centre 0. 0. -16. cm
-/gps/direction 0 0 1
+/gps/particle e+
+/gps/ene/mono 53 MeV
+/gps/pos/centre 0. 10. 0. cm
+/gps/direction 0 -1 0
 
 /analysis/setFileName vis
 
-#/run/beamOn 1
+/run/beamOn 2
