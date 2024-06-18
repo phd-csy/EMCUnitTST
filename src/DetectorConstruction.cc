@@ -411,12 +411,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct() {
     const auto logicalOuter = new G4LogicalVolume(solidOuter, pvdf, "outer");
     new G4PVPlacement(G4Transform3D{}, logicalOuter, "outer", worldLV, false, 0, true);
 
-    const auto solidCoupler = new G4Box("coupler", fCrystalWidth / 2, fCrystalWidth / 2, fCouplerThickness / 2);
+    const auto solidCoupler = new G4Box("coupler", fSiPMWidth / 2, fSiPMWidth / 2, fCouplerThickness / 2);
     const auto logicalCoupler = new G4LogicalVolume(solidCoupler, siliconeOil, "CrystalCoupler");
     const auto physicalCoupler = new G4PVPlacement(Transform(fCouplerThickness / 2),
                                                    logicalCoupler, "CrystalCoupler", worldLV, false, 0, true);
 
-    const auto windowSV = new G4Box("window", fCrystalWidth / 2, fCrystalWidth / 2, fWindowThickness / 2);
+    const auto windowSV = new G4Box("window", fSiPMWidth / 2, fSiPMWidth / 2, fWindowThickness / 2);
     const auto windowLV = new G4LogicalVolume(windowSV, epoxy, "window");
     const auto windowPV = new G4PVPlacement{Transform(fCouplerThickness + fWindowThickness / 2),
                                             windowLV, "window", worldLV, false, 0, true};
